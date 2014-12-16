@@ -1,4 +1,4 @@
-package gif
+package main
 
 import (
 	"fmt"
