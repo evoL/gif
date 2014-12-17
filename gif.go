@@ -18,6 +18,11 @@ func main() {
 			Usage:  "Adds an image",
 			Action: AddCommand,
 		},
+		{
+			Name:   "purge",
+			Usage:  "Clears the image store. This cannot be reversed!",
+			Action: PurgeCommand,
+		},
 	}
 
 	app.Run(os.Args)
@@ -52,5 +57,13 @@ func AddCommand(c *cli.Context) {
 		os.Exit(1)
 	} else {
 		fmt.Println("Saved image: " + store.PathFor(image))
+	}
+}
+
+func PurgeCommand(c *cli.Context) {
+	if store, err := store.Default(); err != nil {
+		// It can't create the store, so why bother?
+	} else {
+		store.Purge()
 	}
 }

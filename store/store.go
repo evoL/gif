@@ -40,3 +40,7 @@ func (store *Store) Contains(image *Image) bool {
 	_, err := os.Stat(store.PathFor(image))
 	return err == nil
 }
+
+func (store *Store) Purge() error {
+	return os.RemoveAll(store.path)
+}
