@@ -27,11 +27,6 @@ func main() {
 			Action: AddCommand,
 		},
 		{
-			Name:   "purge",
-			Usage:  "Clears the image store. This cannot be reversed!",
-			Action: PurgeCommand,
-		},
-		{
 			Name:   "config",
 			Usage:  "Prints the current configuration",
 			Action: ConfigCommand,
@@ -88,14 +83,6 @@ func AddCommand(c *cli.Context) {
 		os.Exit(1)
 	} else {
 		fmt.Println("Saved image: " + store.PathFor(image))
-	}
-}
-
-func PurgeCommand(c *cli.Context) {
-	if store, err := store.Default(); err != nil {
-		// It can't create the store, so why bother?
-	} else {
-		store.Purge()
 	}
 }
 
