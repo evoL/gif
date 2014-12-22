@@ -1,10 +1,10 @@
 package store
 
 import (
+	"github.com/evoL/gif/config"
 	. "github.com/evoL/gif/image"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path"
 )
 
@@ -13,8 +13,7 @@ type Store struct {
 }
 
 func Default() (*Store, error) {
-	current, _ := user.Current()
-	return New(path.Join(current.HomeDir, ".gif"))
+	return New(config.StorePath())
 }
 
 func New(path string) (*Store, error) {
