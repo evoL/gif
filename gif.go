@@ -70,6 +70,7 @@ func AddCommand(c *cli.Context) {
 		fmt.Println("Cannot create store: " + err.Error())
 		os.Exit(1)
 	}
+	defer store.Close()
 
 	image, err := image.FromUrl(url)
 	if err != nil {
@@ -100,4 +101,6 @@ func PurgeCommand(c *cli.Context) {
 
 func ConfigCommand(c *cli.Context) {
 	fmt.Printf("%s %v\n", "storePath", config.StorePath())
+	fmt.Printf("%s %v\n", "db.dataSource", config.DbDataSource())
+	fmt.Printf("%s %v\n", "db.driver", config.DbDriver())
 }

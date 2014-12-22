@@ -6,6 +6,10 @@
 			"ImportPath": "github.com/codegangsta/cli",
 			"Comment": "1.2.0-50-ga14c5b4",
 			"Rev": "a14c5b47c7efa4ff80cc42e1079a34b4756f2311"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Rev": "4c5aec8622e1523fa8f82a2ecb1a20cb039a33ec"
 		}
 	]
 }

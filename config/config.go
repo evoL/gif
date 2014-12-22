@@ -9,6 +9,10 @@ import (
 
 type Config struct {
 	storePath string
+	db        struct {
+		driver     string
+		dataSource string
+	}
 }
 
 var globalConfig *Config
@@ -65,6 +69,30 @@ func (c *Config) StorePath() string {
 	return c.storePath
 }
 
+func (c *Config) DbDriver() string {
+	if c.db.driver == "" {
+		return "sqlite3"
+	}
+	return c.db.driver
+}
+
+func (c *Config) DbDataSource() string {
+	if c.db.dataSource == "" {
+		current, _ := user.Current()
+		defaultPath := path.Join(current.HomeDir, ".gif", "gif.db")
+		return defaultPath
+	}
+	return c.db.dataSource
+}
+
 func StorePath() string {
 	return globalConfig.StorePath()
+}
+
+func DbDriver() string {
+	return globalConfig.DbDriver()
+}
+
+func DbDataSource() string {
+	return globalConfig.DbDataSource()
 }
