@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/config"
-	"github.com/evoL/gif/image"
-	"github.com/evoL/gif/store"
 	"os"
 )
 
@@ -51,39 +49,6 @@ func loadConfig(arg string) (err error) {
 		fmt.Println("Error while loading the configuration file: " + err.Error())
 	}
 	return
-}
-
-func AddCommand(c *cli.Context) {
-	url := c.Args().First()
-	if url == "" {
-		fmt.Println("add: No image specified")
-		os.Exit(1)
-	}
-
-	store, err := store.Default()
-	if err != nil {
-		fmt.Println("Cannot create store: " + err.Error())
-		os.Exit(1)
-	}
-	defer store.Close()
-
-	image, err := image.FromUrl(url)
-	if err != nil {
-		fmt.Println("Cannot load image: " + err.Error())
-		os.Exit(1)
-	}
-
-	if store.Contains(image) {
-		fmt.Println("Image already exists: " + store.PathFor(image))
-		return
-	}
-
-	if err := store.Save(image); err != nil {
-		fmt.Println("Cannot save image: " + err.Error())
-		os.Exit(1)
-	} else {
-		fmt.Println("Saved image: " + store.PathFor(image))
-	}
 }
 
 func ConfigCommand(c *cli.Context) {
