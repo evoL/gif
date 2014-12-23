@@ -22,5 +22,7 @@ func ListCommand(c *cli.Context) {
 		os.Exit(1)
 	}
 
+	fmt.Printf("%v images\n", len(images))
+
 	image.PrintAll(images)
 }
