@@ -82,6 +82,34 @@ func (store *Store) Contains(image *Image) bool {
 	return result
 }
 
-func (store *Store) Purge() error {
-	return os.RemoveAll(store.path)
+func (store *Store) List() (result []Image, err error) {
+	result = make([]Image, 0)
+
+	rows, err := store.db.Query("SELECT id, url, added_at FROM images ORDER BY added_at DESC")
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			img     = Image{}
+			url     sql.NullString
+			addedAt time.Time
+		)
+		err = rows.Scan(&img.Id, &url, &addedAt)
+		if err != nil {
+			return
+		}
+
+		img.AddedAt = &addedAt
+		if url.Valid {
+			img.Url = url.String
+		}
+
+		result = append(result, img)
+	}
+
+	err = rows.Err()
+	return
 }

@@ -29,6 +29,11 @@ func main() {
 			Usage:  "Prints the current configuration",
 			Action: ConfigCommand,
 		},
+		{
+			Name:   "list",
+			Usage:  "Lists stored images",
+			Action: ListCommand,
+		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
 		err = loadConfig(c.String("config"))
