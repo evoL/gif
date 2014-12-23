@@ -8,14 +8,14 @@ import (
 )
 
 type Config struct {
-	storePath string
-	db        struct {
-		driver     string
-		dataSource string
+	StorePath string
+	Db        struct {
+		Driver     string
+		DataSource string
 	}
 }
 
-var globalConfig *Config
+var Global *Config
 
 func New(path string) (*Config, error) {
 	return loadConfig(path, false)
@@ -23,7 +23,7 @@ func New(path string) (*Config, error) {
 
 func Load(path string) error {
 	var err error
-	globalConfig, err = New(path)
+	Global, err = New(path)
 	return err
 }
 
@@ -36,63 +36,37 @@ func NewDefault() (*Config, error) {
 
 func Default() error {
 	var err error
-	globalConfig, err = NewDefault()
+	Global, err = NewDefault()
 	return err
+}
+
+func defaultConfig() (config *Config) {
+	config = &Config{}
+	current, _ := user.Current()
+
+	config.StorePath = path.Join(current.HomeDir, ".gif", "store")
+	config.Db.Driver = "sqlite3"
+	config.Db.DataSource = path.Join(current.HomeDir, ".gif", "gif.db")
+
+	return
 }
 
 func loadConfig(configPath string, passIfMissing bool) (*Config, error) {
 	file, err := os.Open(configPath)
 	if err != nil {
 		if passIfMissing && os.IsNotExist(err) {
-			return &Config{}, nil
+			return defaultConfig(), nil
 		}
 		return nil, err
 	}
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
-	cfg := &Config{}
+	cfg := defaultConfig()
 
 	if err = decoder.Decode(&cfg); err != nil {
 		return nil, err
 	}
 
 	return cfg, nil
-}
-
-func (c *Config) StorePath() string {
-	if c.storePath == "" {
-		current, _ := user.Current()
-		defaultPath := path.Join(current.HomeDir, ".gif", "store")
-		return defaultPath
-	}
-	return c.storePath
-}
-
-func (c *Config) DbDriver() string {
-	if c.db.driver == "" {
-		return "sqlite3"
-	}
-	return c.db.driver
-}
-
-func (c *Config) DbDataSource() string {
-	if c.db.dataSource == "" {
-		current, _ := user.Current()
-		defaultPath := path.Join(current.HomeDir, ".gif", "gif.db")
-		return defaultPath
-	}
-	return c.db.dataSource
-}
-
-func StorePath() string {
-	return globalConfig.StorePath()
-}
-
-func DbDriver() string {
-	return globalConfig.DbDriver()
-}
-
-func DbDataSource() string {
-	return globalConfig.DbDataSource()
 }

@@ -16,7 +16,7 @@ type Store struct {
 }
 
 func Default() (*Store, error) {
-	return New(config.StorePath())
+	return New(config.Global.StorePath)
 }
 
 func New(path string) (*Store, error) {

@@ -31,8 +31,8 @@ func New(driver, dataSource string) (*sql.DB, error) {
 }
 
 func Default() (*sql.DB, error) {
-	driver := config.DbDriver()
-	dataSource := config.DbDataSource()
+	driver := config.Global.Db.Driver
+	dataSource := config.Global.Db.DataSource
 
 	return New(driver, dataSource)
 }
