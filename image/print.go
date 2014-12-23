@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -32,5 +33,11 @@ func (img *Image) PrintTo(writer io.Writer) {
 		io.WriteString(writer, "remote\t")
 	}
 
-	fmt.Fprintln(writer, img.AddedAt.Format("2006-01-02 15:04:05"))
+	fmt.Fprintf(writer, "%v\t", img.AddedAt.Format("2006-01-02 15:04:05"))
+
+	if len(img.Tags) > 0 {
+		fmt.Fprintln(writer, strings.Join(img.Tags, ", "))
+	} else {
+		fmt.Fprintln(writer, "(no tags)")
+	}
 }

@@ -61,11 +61,16 @@ func AddCommand(c *cli.Context) {
 	if err := store.Add(img); err != nil {
 		fmt.Println("Cannot save image: " + err.Error())
 		os.Exit(1)
-	} else {
-		io.WriteString(writer, "[added]\t")
-		img.PrintTo(writer)
-		return
 	}
+
+	err = TagInterface(store, img)
+	if err != nil {
+		fmt.Println("Cannot save tags: " + err.Error())
+	}
+
+	io.WriteString(writer, "[added]\t")
+	img.PrintTo(writer)
+	return
 }
 
 func parseLocation(location string) (locationType, error) {

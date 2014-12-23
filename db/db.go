@@ -45,15 +45,13 @@ func Setup(db *sql.DB) error {
 	  added_at DATETIME NOT NULL
 	);
 
-	CREATE TABLE tags (tag VARCHAR(255) PRIMARY KEY);
-
-	CREATE TABLE images_tags (
+	CREATE TABLE image_tags (
 	  image_id VARCHAR(40) NOT NULL,
 	  tag VARCHAR(255) NOT NULL
 	);
 
-	CREATE INDEX images_tags_index ON images_tags (tag);
-	CREATE UNIQUE INDEX images_tags_unique ON images_tags (image_id, tag);`
+	CREATE INDEX image_tags_index ON image_tags (tag);
+	CREATE UNIQUE INDEX image_tags_unique ON image_tags (image_id, tag);`
 
 	_, err := db.Exec(schema)
 	return err

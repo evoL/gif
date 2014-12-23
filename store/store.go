@@ -85,7 +85,43 @@ func (store *Store) Contains(image *Image) bool {
 func (store *Store) List() (result []Image, err error) {
 	result = make([]Image, 0)
 
-	rows, err := store.db.Query("SELECT id, url, added_at FROM images ORDER BY added_at DESC")
+	tx, err := store.db.Begin()
+	if err != nil {
+		return
+	}
+
+	// Fetch all tags first - less queries!
+	tagMap := make(map[string][]string)
+	rows, err := tx.Query("SELECT image_id, tag FROM image_tags")
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			imageId string
+			tag     string
+		)
+		err = rows.Scan(&imageId, &tag)
+		if err != nil {
+			return
+		}
+
+		if tagList, keyExists := tagMap[imageId]; keyExists {
+			tagMap[imageId] = append(tagList, tag)
+		} else {
+			tagMap[imageId] = []string{tag}
+		}
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return
+	}
+
+	// Fetch all images
+	rows, err = tx.Query("SELECT id, url, added_at FROM images ORDER BY added_at DESC")
 	if err != nil {
 		return
 	}
@@ -106,10 +142,54 @@ func (store *Store) List() (result []Image, err error) {
 		if url.Valid {
 			img.Url = url.String
 		}
+		if tagList, hasTags := tagMap[img.Id]; hasTags {
+			img.Tags = tagList
+		}
 
 		result = append(result, img)
 	}
 
 	err = rows.Err()
+	if err != nil {
+		return
+	}
+
+	err = tx.Commit()
 	return
+}
+
+func (store *Store) UpdateTags(image *Image, tags []string) error {
+	tx, err := store.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// First, remove old tags
+	_, err = tx.Exec("DELETE FROM image_tags WHERE image_id = ?", image.Id)
+	if err != nil {
+		return err
+	}
+
+	// Second, add new ones
+	stmt, err := tx.Prepare("INSERT INTO image_tags (image_id, tag) VALUES (?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, tag := range tags {
+		_, err = stmt.Exec(image.Id, tag)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	image.Tags = tags
+
+	return nil
 }
