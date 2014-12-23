@@ -41,7 +41,8 @@ func Setup(db *sql.DB) error {
 	schema := `
 	CREATE TABLE images (
 	  id VARCHAR(40) PRIMARY KEY,
-	  url TEXT
+	  url TEXT,
+	  added_at DATETIME NOT NULL
 	);
 
 	CREATE TABLE tags (tag VARCHAR(255) PRIMARY KEY);

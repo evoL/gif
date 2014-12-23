@@ -58,7 +58,7 @@ func AddCommand(c *cli.Context) {
 		return
 	}
 
-	if err := store.Save(img); err != nil {
+	if err := store.Add(img); err != nil {
 		fmt.Println("Cannot save image: " + err.Error())
 		os.Exit(1)
 	} else {

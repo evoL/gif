@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"time"
 )
 
 type Store struct {
@@ -36,7 +37,7 @@ func New(path string) (*Store, error) {
 	return store, nil
 }
 
-func (store *Store) Save(image *Image) error {
+func (store *Store) Add(image *Image) error {
 	if err := ioutil.WriteFile(store.PathFor(image), image.Data, 0644); err != nil {
 		return err
 	}
@@ -45,20 +46,24 @@ func (store *Store) Save(image *Image) error {
 	if err != nil {
 		return err
 	}
-	stmt, err := tx.Prepare("INSERT INTO images (id, url) VALUES (?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO images (id, url, added_at) VALUES (?, ?, ?)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
+	now := time.Now()
+
 	if image.Url == "" {
-		_, err = stmt.Exec(image.Id, sql.NullString{})
+		_, err = stmt.Exec(image.Id, sql.NullString{}, now)
 	} else {
-		_, err = stmt.Exec(image.Id, image.Url)
+		_, err = stmt.Exec(image.Id, image.Url, now)
 	}
 	if err != nil {
 		return err
 	}
+
+	image.AddedAt = &now
 
 	return tx.Commit()
 }

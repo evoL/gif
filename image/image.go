@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type Image struct {
-	Id   string
-	Url  string
-	Tags []string
-	Data []byte
+	Id      string
+	Url     string
+	Tags    []string
+	Data    []byte
+	AddedAt *time.Time
 }
 
 func FromUrl(url string) (*Image, error) {
