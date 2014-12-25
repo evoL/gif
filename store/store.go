@@ -85,76 +85,77 @@ func (store *Store) Contains(image *Image) bool {
 func (store *Store) List() (result []Image, err error) {
 	result = make([]Image, 0)
 
-	tx, err := store.db.Begin()
-	if err != nil {
-		return
-	}
+	// The code assumes that the database returns images that aren't mixed with each
+	// other; that is, the following situation doesn't happen:
+	//
+	// id | tag
+	// 0  | a
+	// 1  | b
+	// 0  | c
+	//
+	// This is extremely unlikely, because those images would be added at the exact
+	// same time. However, to prevent this, "ORDER BY id" needs to be added.
+	// I didn't include this now, because it might add an unnecessary
+	// performance hit.
 
-	// Fetch all tags first - less queries!
-	tagMap := make(map[string][]string)
-	rows, err := tx.Query("SELECT image_id, tag FROM image_tags")
-	if err != nil {
-		return
-	}
-	defer rows.Close()
+	queryString := `
+	SELECT id, tag, url, added_at
+	FROM images
+	LEFT JOIN image_tags
+	ON images.id = image_tags.image_id
+	ORDER BY added_at DESC`
 
-	for rows.Next() {
-		var (
-			imageId string
-			tag     string
-		)
-		err = rows.Scan(&imageId, &tag)
-		if err != nil {
-			return
-		}
-
-		if tagList, keyExists := tagMap[imageId]; keyExists {
-			tagMap[imageId] = append(tagList, tag)
-		} else {
-			tagMap[imageId] = []string{tag}
-		}
-	}
-
-	err = rows.Err()
-	if err != nil {
-		return
-	}
-
-	// Fetch all images
-	rows, err = tx.Query("SELECT id, url, added_at FROM images ORDER BY added_at DESC")
+	rows, err := store.db.Query(queryString)
 	if err != nil {
 		return
 	}
 	defer rows.Close()
 
+	img := Image{}
 	for rows.Next() {
 		var (
-			img     = Image{}
+			id      string
 			url     sql.NullString
 			addedAt time.Time
+			tag     sql.NullString
 		)
-		err = rows.Scan(&img.Id, &url, &addedAt)
+
+		err = rows.Scan(&id, &tag, &url, &addedAt)
 		if err != nil {
 			return
 		}
 
-		img.AddedAt = &addedAt
-		if url.Valid {
-			img.Url = url.String
-		}
-		if tagList, hasTags := tagMap[img.Id]; hasTags {
-			img.Tags = tagList
-		}
+		if img.Id == id {
+			if tag.Valid {
+				// Add another tag to existing image
+				img.Tags = append(img.Tags, tag.String)
+			}
+			// The opposite case should not happen, but if it does, we're just ignoring it.
+		} else {
+			// Append the previously processed image if there's one
+			if img.Id != "" {
+				result = append(result, img)
+			}
 
-		result = append(result, img)
+			// Create a new image
+			img.Id = id
+			img.AddedAt = &addedAt
+			if url.Valid {
+				img.Url = url.String
+			}
+			if tag.Valid {
+				img.Tags = []string{tag.String}
+			} else {
+				img.Tags = []string{}
+			}
+		}
 	}
+
+	// As we're only appending when a different image turns up, we need to append
+	// the last image separately.
+	result = append(result, img)
 
 	err = rows.Err()
-	if err != nil {
-		return
-	}
-
-	err = tx.Commit()
 	return
 }
 
