@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/evoL/gif/config"
 	"github.com/evoL/gif/db"
 	. "github.com/evoL/gif/image"
@@ -82,7 +83,7 @@ func (store *Store) Contains(image *Image) bool {
 	return result
 }
 
-func (store *Store) List() (result []Image, err error) {
+func (store *Store) List(filter Filter) (result []Image, err error) {
 	result = make([]Image, 0)
 
 	// The code assumes that the database returns images that aren't mixed with each
@@ -102,10 +103,9 @@ func (store *Store) List() (result []Image, err error) {
 	SELECT id, tag, url, added_at
 	FROM images
 	LEFT JOIN image_tags
-	ON images.id = image_tags.image_id
-	ORDER BY added_at DESC`
+	ON images.id = image_tags.image_id`
 
-	rows, err := store.db.Query(queryString)
+	rows, err := store.db.Query(fmt.Sprintf("%s WHERE %s", queryString, filter.Condition()), filter.Values()...)
 	if err != nil {
 		return
 	}

@@ -9,14 +9,19 @@ import (
 )
 
 func ListCommand(c *cli.Context) {
-	store, err := store.Default()
+	s, err := store.Default()
 	if err != nil {
 		fmt.Println("Cannot create store: " + err.Error())
 		os.Exit(1)
 	}
-	defer store.Close()
+	defer s.Close()
 
-	images, err := store.List()
+	filter := store.DateOrderer{
+		Filter:    store.NullFilter{},
+		Direction: store.Descending,
+	}
+
+	images, err := s.List(filter)
 	if err != nil {
 		fmt.Println("Error while fetching: " + err.Error())
 		os.Exit(1)
