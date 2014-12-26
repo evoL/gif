@@ -59,15 +59,11 @@ func (f TagFilter) Values() valueSlice {
 
 type RandomOrderer struct {
 	Filter Filter
-	Single bool
+	// Single bool
 }
 
 func (f RandomOrderer) Condition() string {
-	if f.Single {
-		return f.Filter.Condition() + " AND images._ROWID_ >= (abs(random()) % (SELECT max(_ROWID_) FROM images)) LIMIT 1"
-	} else {
-		return f.Filter.Condition() + " ORDER BY random()"
-	}
+	return f.Filter.Condition() + " ORDER BY random()"
 }
 func (f RandomOrderer) Values() valueSlice {
 	return f.Filter.Values()
@@ -88,5 +84,19 @@ func (f DateOrderer) Condition() string {
 	}
 }
 func (f DateOrderer) Values() valueSlice {
+	return f.Filter.Values()
+}
+
+///////////////////////////////////////////////////////////
+
+type Limiter struct {
+	Filter Filter
+	Limit  int
+}
+
+func (f Limiter) Condition() string {
+	return f.Filter.Condition() + fmt.Sprintf(" LIMIT %d", f.Limit)
+}
+func (f Limiter) Values() valueSlice {
 	return f.Filter.Values()
 }

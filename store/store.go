@@ -83,7 +83,7 @@ func (store *Store) Contains(image *Image) bool {
 	return result
 }
 
-func (store *Store) List(filter Filter) (result []Image, err error) {
+func (store *Store) List(filter Filter, tagFilter Filter) (result []Image, err error) {
 	result = make([]Image, 0)
 
 	// The code assumes that the database returns images that aren't mixed with each
@@ -99,13 +99,14 @@ func (store *Store) List(filter Filter) (result []Image, err error) {
 	// I didn't include this now, because it might add an unnecessary
 	// performance hit.
 
-	queryString := `
+	queryString := fmt.Sprintf(`
 	SELECT id, tag, url, added_at
-	FROM images
+	FROM (SELECT * FROM images WHERE %s) images
 	LEFT JOIN image_tags
-	ON images.id = image_tags.image_id`
+	ON images.id = image_tags.image_id
+	WHERE %s`, filter.Condition(), tagFilter.Condition())
 
-	rows, err := store.db.Query(fmt.Sprintf("%s WHERE %s", queryString, filter.Condition()), filter.Values()...)
+	rows, err := store.db.Query(queryString, append(filter.Values(), tagFilter.Values()...)...)
 	if err != nil {
 		return
 	}
@@ -153,7 +154,9 @@ func (store *Store) List(filter Filter) (result []Image, err error) {
 
 	// As we're only appending when a different image turns up, we need to append
 	// the last image separately.
-	result = append(result, img)
+	if img.Id != "" {
+		result = append(result, img)
+	}
 
 	err = rows.Err()
 	return

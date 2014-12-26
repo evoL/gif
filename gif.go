@@ -8,6 +8,8 @@ import (
 )
 
 func main() {
+	filterFlags := filterFlags()
+
 	app := cli.NewApp()
 	app.Name = "gif"
 	app.Usage = "a stupid gif manager"
@@ -33,6 +35,7 @@ func main() {
 			Name:   "list",
 			Usage:  "Lists stored images",
 			Action: ListCommand,
+			Flags:  filterFlags,
 		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
