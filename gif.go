@@ -40,6 +40,9 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "gif"
 	app.Usage = "a stupid gif manager"
+	app.Author = "Rafał Hirsz"
+	app.Email = "rafal@hirsz.co"
+	app.Version = "0.1.0-pre"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "config, c",
