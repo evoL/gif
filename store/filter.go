@@ -83,7 +83,6 @@ func (f RemoteFilter) Values() valueSlice {
 
 type RandomOrderer struct {
 	Filter Filter
-	// Single bool
 }
 
 func (f RandomOrderer) Condition() string {
