@@ -111,6 +111,8 @@ func (store *Store) List(filter Filter) (result []Image, err error) {
 	LEFT JOIN image_tags
 	ON images.id = image_tags.image_id`, filter.Condition())
 
+	// fmt.Println(queryString)
+
 	rows, err := store.db.Query(queryString, filter.Values()...)
 	if err != nil {
 		return
@@ -148,6 +150,8 @@ func (store *Store) List(filter Filter) (result []Image, err error) {
 			img.AddedAt = &addedAt
 			if url.Valid {
 				img.Url = url.String
+			} else {
+				img.Url = ""
 			}
 			if tag.Valid {
 				img.Tags = []string{tag.String}
