@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/image"
-	"github.com/evoL/gif/store"
 	"io"
 	"net/url"
 	"os"
@@ -30,12 +29,8 @@ func AddCommand(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	store, err := store.Default()
-	if err != nil {
-		fmt.Println("Cannot create store: " + err.Error())
-		os.Exit(1)
-	}
-	defer store.Close()
+	s := getStore()
+	defer s.Close()
 
 	var img *image.Image
 	switch ltype {
@@ -52,18 +47,18 @@ func AddCommand(c *cli.Context) {
 	writer := tabwriter.NewWriter(os.Stdout, 4, 4, 2, ' ', 0)
 	defer writer.Flush()
 
-	if store.Contains(img) {
+	if s.Contains(img) {
 		io.WriteString(writer, "[exists]\t")
 		img.PrintTo(writer)
 		return
 	}
 
-	if err := store.Add(img); err != nil {
+	if err := s.Add(img); err != nil {
 		fmt.Println("Cannot save image: " + err.Error())
 		os.Exit(1)
 	}
 
-	err = TagInterface(store, img)
+	err = TagInterface(s, img)
 	if err != nil {
 		fmt.Println("Cannot save tags: " + err.Error())
 	}
