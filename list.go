@@ -12,16 +12,7 @@ func ListCommand(c *cli.Context) {
 	s := getStore()
 	defer s.Close()
 
-	var filter store.Filter
-	if c.Bool("untagged") {
-		filter = store.UntaggedFilter{}
-	} else {
-		filter = typeFilter(c)
-	}
-	filter = store.DateOrderer{
-		Filter:    filter,
-		Direction: store.Descending,
-	}
+	filter := listFilter(c)
 
 	images, err := s.List(filter)
 	if err != nil {

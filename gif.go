@@ -59,6 +59,12 @@ func main() {
 			Action: ConfigCommand,
 		},
 		{
+			Name:   "tag",
+			Usage:  "Enables to change tags for images",
+			Action: TagCommand,
+			Flags:  listFlags,
+		},
+		{
 			Name:   "list",
 			Usage:  "Lists stored images",
 			Action: ListCommand,
@@ -124,6 +130,20 @@ func typeFilter(c *cli.Context) (filter store.Filter) {
 		}
 	} else {
 		filter = store.NullFilter{}
+	}
+
+	return
+}
+
+func listFilter(c *cli.Context) (filter store.Filter) {
+	if c.Bool("untagged") {
+		filter = store.UntaggedFilter{}
+	} else {
+		filter = typeFilter(c)
+	}
+	filter = store.DateOrderer{
+		Filter:    filter,
+		Direction: store.Descending,
 	}
 
 	return

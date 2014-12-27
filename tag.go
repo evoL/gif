@@ -25,10 +25,24 @@ func TagInterface(s *store.Store, img *image.Image) error {
 }
 
 func TagCommand(c *cli.Context) {
-	store, err := store.Default()
+	s := getStore()
+	defer s.Close()
+
+	filter := listFilter(c)
+
+	images, err := s.List(filter)
 	if err != nil {
-		fmt.Println("Cannot create store: " + err.Error())
+		fmt.Println("Error while fetching: " + err.Error())
 		os.Exit(1)
 	}
-	defer store.Close()
+
+	for _, image := range images {
+		image.Print()
+
+		err = TagInterface(s, &image)
+		if err != nil {
+			fmt.Println("Error while updating tags: " + err.Error())
+			os.Exit(1)
+		}
+	}
 }
