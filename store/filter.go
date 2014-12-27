@@ -57,6 +57,30 @@ func (f TagFilter) Values() valueSlice {
 
 ///////////////////////////////////////////////////////////
 
+type UntaggedFilter struct{}
+
+func (f UntaggedFilter) Condition() string {
+	return "tag IS NULL"
+}
+func (f UntaggedFilter) Values() valueSlice {
+	return valueSlice{}
+}
+
+///////////////////////////////////////////////////////////
+
+type RemoteFilter struct {
+	Filter Filter
+}
+
+func (f RemoteFilter) Condition() string {
+	return f.Filter.Condition() + " AND url IS NOT NULL"
+}
+func (f RemoteFilter) Values() valueSlice {
+	return f.Filter.Values()
+}
+
+///////////////////////////////////////////////////////////
+
 type RandomOrderer struct {
 	Filter Filter
 	// Single bool

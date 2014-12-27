@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/config"
+	"github.com/evoL/gif/store"
 	"os"
 )
 
 func main() {
-	filterFlags := filterFlags()
+	typeFlags := typeFlags()
 
 	app := cli.NewApp()
 	app.Name = "gif"
@@ -35,7 +36,30 @@ func main() {
 			Name:   "list",
 			Usage:  "Lists stored images",
 			Action: ListCommand,
-			Flags:  filterFlags,
+			Flags: append(
+				typeFlags,
+				cli.BoolFlag{
+					Name:  "untagged",
+					Usage: "Lists only images that have no tag.",
+				},
+			),
+		},
+		{
+			Name:   "url",
+			Usage:  "Lists URLs of images",
+			Action: UrlCommand,
+			Flags: append(
+				typeFlags,
+				cli.BoolFlag{
+					Name:  "all, a",
+					Usage: "Gets all matching images",
+				},
+				cli.StringFlag{
+					Name:  "order, sort, s",
+					Usage: "Specifies the order of images. Must be one of: random, newest, oldest.",
+					Value: "random",
+				},
+			),
 		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
@@ -44,6 +68,10 @@ func main() {
 	}
 
 	app.Run(os.Args)
+}
+
+func ConfigCommand(c *cli.Context) {
+	config.Global.Print()
 }
 
 func loadConfig(arg string) (err error) {
@@ -59,6 +87,11 @@ func loadConfig(arg string) (err error) {
 	return
 }
 
-func ConfigCommand(c *cli.Context) {
-	config.Global.Print()
+func getStore() *store.Store {
+	s, err := store.Default()
+	if err != nil {
+		fmt.Println("Cannot create store: " + err.Error())
+		os.Exit(1)
+	}
+	return s
 }
