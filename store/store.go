@@ -83,7 +83,7 @@ func (store *Store) Contains(image *Image) bool {
 	return result
 }
 
-func (store *Store) List(filter Filter, tagFilter Filter) (result []Image, err error) {
+func (store *Store) List(filter Filter) (result []Image, err error) {
 	result = make([]Image, 0)
 
 	// The code assumes that the database returns images that aren't mixed with each
@@ -101,12 +101,17 @@ func (store *Store) List(filter Filter, tagFilter Filter) (result []Image, err e
 
 	queryString := fmt.Sprintf(`
 	SELECT id, tag, url, added_at
-	FROM (SELECT * FROM images WHERE %s) images
+	FROM (
+		SELECT DISTINCT images.*
+		FROM images
+		LEFT JOIN image_tags
+		ON images.id = image_tags.image_id
+		WHERE %s
+	) images
 	LEFT JOIN image_tags
-	ON images.id = image_tags.image_id
-	WHERE %s`, filter.Condition(), tagFilter.Condition())
+	ON images.id = image_tags.image_id`, filter.Condition())
 
-	rows, err := store.db.Query(queryString, append(filter.Values(), tagFilter.Values()...)...)
+	rows, err := store.db.Query(queryString, filter.Values()...)
 	if err != nil {
 		return
 	}

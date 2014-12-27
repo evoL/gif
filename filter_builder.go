@@ -33,9 +33,8 @@ func filterFlags() []cli.Flag {
 	}
 }
 
-func buildFilter(c *cli.Context) (filter store.Filter, tagFilter store.Filter) {
+func buildFilter(c *cli.Context) (filter store.Filter) {
 	// Detect the type
-	tagFilter = store.NullFilter{}
 
 	if c.Args().Present() {
 		arg := strings.Join(c.Args(), " ")
@@ -43,8 +42,7 @@ func buildFilter(c *cli.Context) (filter store.Filter, tagFilter store.Filter) {
 		if !c.Bool("tag") && regexp.MustCompile("^[0-9a-f]+$").MatchString(arg) {
 			filter = store.IdFilter{Id: arg}
 		} else {
-			filter = store.NullFilter{}
-			tagFilter = store.TagFilter{Tag: arg}
+			filter = store.TagFilter{Tag: arg}
 		}
 	} else {
 		filter = store.NullFilter{}

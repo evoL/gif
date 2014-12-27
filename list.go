@@ -16,8 +16,7 @@ func ListCommand(c *cli.Context) {
 	}
 	defer s.Close()
 
-	f, tf := buildFilter(c)
-	images, err := s.List(f, tf)
+	images, err := s.List(buildFilter(c))
 	if err != nil {
 		fmt.Println("Error while fetching: " + err.Error())
 		os.Exit(1)
