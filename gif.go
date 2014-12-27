@@ -70,6 +70,12 @@ func main() {
 			Action: UrlCommand,
 			Flags:  getFlags,
 		},
+		{
+			Name:   "path",
+			Usage:  "Lists paths to images",
+			Action: PathCommand,
+			Flags:  getFlags,
+		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
 		err = loadConfig(c.String("config"))
@@ -118,6 +124,26 @@ func typeFilter(c *cli.Context) (filter store.Filter) {
 		}
 	} else {
 		filter = store.NullFilter{}
+	}
+
+	return
+}
+
+func orderAndLimit(input store.Filter, c *cli.Context) (filter store.Filter) {
+	switch c.String("order") {
+	case "random":
+		filter = store.RandomOrderer{Filter: input}
+	case "newest":
+		filter = store.DateOrderer{Filter: input, Direction: store.Descending}
+	case "oldest":
+		filter = store.DateOrderer{Filter: input, Direction: store.Ascending}
+	default:
+		fmt.Println("Invalid order.")
+		os.Exit(1)
+	}
+
+	if !c.Bool("all") {
+		filter = store.Limiter{Filter: filter, Limit: 1}
 	}
 
 	return

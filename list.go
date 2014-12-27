@@ -38,23 +38,7 @@ func UrlCommand(c *cli.Context) {
 	s := getStore()
 	defer s.Close()
 
-	var filter store.Filter = store.RemoteFilter{Filter: typeFilter(c)}
-
-	switch c.String("order") {
-	case "random":
-		filter = store.RandomOrderer{Filter: filter}
-	case "newest":
-		filter = store.DateOrderer{Filter: filter, Direction: store.Descending}
-	case "oldest":
-		filter = store.DateOrderer{Filter: filter, Direction: store.Ascending}
-	default:
-		fmt.Println("Invalid order.")
-		os.Exit(1)
-	}
-
-	if !c.Bool("all") {
-		filter = store.Limiter{Filter: filter, Limit: 1}
-	}
+	filter := orderAndLimit(store.RemoteFilter{Filter: typeFilter(c)}, c)
 
 	images, err := s.List(filter)
 	if err != nil {
@@ -64,5 +48,22 @@ func UrlCommand(c *cli.Context) {
 
 	for _, image := range images {
 		fmt.Println(image.Url)
+	}
+}
+
+func PathCommand(c *cli.Context) {
+	s := getStore()
+	defer s.Close()
+
+	filter := orderAndLimit(typeFilter(c), c)
+
+	images, err := s.List(filter)
+	if err != nil {
+		fmt.Println("Error while fetching: " + err.Error())
+		os.Exit(1)
+	}
+
+	for _, image := range images {
+		fmt.Println(s.PathFor(&image))
 	}
 }
