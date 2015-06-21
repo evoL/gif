@@ -5,13 +5,11 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"text/tabwriter"
-	"text/template"
 	"time"
 )
 
 // App is the main structure of a cli application. It is recomended that
-// and app be created with the cli.NewApp() function
+// an app be created with the cli.NewApp() function
 type App struct {
 	// The name of the program. Defaults to os.Args[0]
 	Name string
@@ -34,15 +32,22 @@ type App struct {
 	// An action to execute before any subcommands are run, but after the context is ready
 	// If a non-nil error is returned, no subcommands are run
 	Before func(context *Context) error
+	// An action to execute after any subcommands are run, but after the subcommand has finished
+	// It is run even if Action() panics
+	After func(context *Context) error
 	// The action to execute when no subcommands are specified
 	Action func(context *Context)
 	// Execute this function if the proper command cannot be found
 	CommandNotFound func(context *Context, command string)
 	// Compilation date
 	Compiled time.Time
-	// Author
+	// List of all authors who contributed
+	Authors []Author
+	// Copyright of the binary if any
+	Copyright string
+	// Name of Author (Note: Use App.Authors, this is deprecated)
 	Author string
-	// Author e-mail
+	// Email of Author (Note: Use App.Authors, this is deprecated)
 	Email string
 	// Writer writer to write output to
 	Writer io.Writer
@@ -67,34 +72,22 @@ func NewApp() *App {
 		BashComplete: DefaultAppComplete,
 		Action:       helpCommand.Action,
 		Compiled:     compileTime(),
-		Author:       "Author",
-		Email:        "unknown@email",
 		Writer:       os.Stdout,
 	}
 }
 
 // Entry point to the cli app. Parses the arguments slice and routes to the proper flag/args combination
-func (a *App) Run(arguments []string) error {
-	if HelpPrinter == nil {
-		defer func() {
-			HelpPrinter = nil
-		}()
-
-		HelpPrinter = func(templ string, data interface{}) {
-			w := tabwriter.NewWriter(a.Writer, 0, 8, 1, '\t', 0)
-			t := template.Must(template.New("help").Parse(templ))
-			err := t.Execute(w, data)
-			if err != nil {
-				panic(err)
-			}
-			w.Flush()
-		}
+func (a *App) Run(arguments []string) (err error) {
+	if a.Author != "" || a.Email != "" {
+		a.Authors = append(a.Authors, Author{Name: a.Author, Email: a.Email})
 	}
 
 	// append help to commands
 	if a.Command(helpCommand.Name) == nil && !a.HideHelp {
 		a.Commands = append(a.Commands, helpCommand)
-		a.appendFlag(HelpFlag)
+		if (HelpFlag != BoolFlag{}) {
+			a.appendFlag(HelpFlag)
+		}
 	}
 
 	//append version/help flags
@@ -109,16 +102,16 @@ func (a *App) Run(arguments []string) error {
 	// parse flags
 	set := flagSet(a.Name, a.Flags)
 	set.SetOutput(ioutil.Discard)
-	err := set.Parse(arguments[1:])
+	err = set.Parse(arguments[1:])
 	nerr := normalizeFlags(a.Flags, set)
 	if nerr != nil {
 		fmt.Fprintln(a.Writer, nerr)
-		context := NewContext(a, set, set)
+		context := NewContext(a, set, nil)
 		ShowAppHelp(context)
 		fmt.Fprintln(a.Writer)
 		return nerr
 	}
-	context := NewContext(a, set, set)
+	context := NewContext(a, set, nil)
 
 	if err != nil {
 		fmt.Fprintf(a.Writer, "Incorrect Usage.\n\n")
@@ -137,6 +130,19 @@ func (a *App) Run(arguments []string) error {
 
 	if checkVersion(context) {
 		return nil
+	}
+
+	if a.After != nil {
+		defer func() {
+			afterErr := a.After(context)
+			if afterErr != nil {
+				if err != nil {
+					err = NewMultiError(err, afterErr)
+				} else {
+					err = afterErr
+				}
+			}
+		}()
 	}
 
 	if a.Before != nil {
@@ -169,12 +175,14 @@ func (a *App) RunAndExitOnError() {
 }
 
 // Invokes the subcommand given the context, parses ctx.Args() to generate command-specific flags
-func (a *App) RunAsSubcommand(ctx *Context) error {
+func (a *App) RunAsSubcommand(ctx *Context) (err error) {
 	// append help to commands
 	if len(a.Commands) > 0 {
 		if a.Command(helpCommand.Name) == nil && !a.HideHelp {
 			a.Commands = append(a.Commands, helpCommand)
-			a.appendFlag(HelpFlag)
+			if (HelpFlag != BoolFlag{}) {
+				a.appendFlag(HelpFlag)
+			}
 		}
 	}
 
@@ -186,9 +194,9 @@ func (a *App) RunAsSubcommand(ctx *Context) error {
 	// parse flags
 	set := flagSet(a.Name, a.Flags)
 	set.SetOutput(ioutil.Discard)
-	err := set.Parse(ctx.Args().Tail())
+	err = set.Parse(ctx.Args().Tail())
 	nerr := normalizeFlags(a.Flags, set)
-	context := NewContext(a, set, ctx.globalSet)
+	context := NewContext(a, set, ctx)
 
 	if nerr != nil {
 		fmt.Fprintln(a.Writer, nerr)
@@ -221,6 +229,19 @@ func (a *App) RunAsSubcommand(ctx *Context) error {
 		}
 	}
 
+	if a.After != nil {
+		defer func() {
+			afterErr := a.After(context)
+			if afterErr != nil {
+				if err != nil {
+					err = NewMultiError(err, afterErr)
+				} else {
+					err = afterErr
+				}
+			}
+		}()
+	}
+
 	if a.Before != nil {
 		err := a.Before(context)
 		if err != nil {
@@ -238,11 +259,7 @@ func (a *App) RunAsSubcommand(ctx *Context) error {
 	}
 
 	// Run default Action
-	if len(a.Commands) > 0 {
-		a.Action(context)
-	} else {
-		a.Action(ctx)
-	}
+	a.Action(context)
 
 	return nil
 }
@@ -272,4 +289,20 @@ func (a *App) appendFlag(flag Flag) {
 	if !a.hasFlag(flag) {
 		a.Flags = append(a.Flags, flag)
 	}
+}
+
+// Author represents someone who has contributed to a cli project.
+type Author struct {
+	Name  string // The Authors name
+	Email string // The Authors email
+}
+
+// String makes Author comply to the Stringer interface, to allow an easy print in the templating process
+func (a Author) String() string {
+	e := ""
+	if a.Email != "" {
+		e = "<" + a.Email + "> "
+	}
+
+	return fmt.Sprintf("%v %v", a.Name, e)
 }
