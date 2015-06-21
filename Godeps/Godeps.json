@@ -9,7 +9,7 @@
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
-			"Rev": "4c5aec8622e1523fa8f82a2ecb1a20cb039a33ec"
+			"Rev": "542ae647f8601bafd96233961b150cae198e0295"
 		}
 	]
 }
