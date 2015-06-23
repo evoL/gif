@@ -15,6 +15,7 @@ type Image struct {
 	Tags    []string
 	Data    []byte
 	AddedAt *time.Time
+	Size    int64
 }
 
 func FromUrl(url string) (*Image, error) {

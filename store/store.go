@@ -158,6 +158,14 @@ func (store *Store) List(filter Filter) (result []Image, err error) {
 			} else {
 				img.Tags = []string{}
 			}
+
+			// Fetch file size
+			var info os.FileInfo
+			info, err = os.Stat(store.PathFor(&img))
+			if err != nil {
+				return
+			}
+			img.Size = info.Size()
 		}
 	}
 
