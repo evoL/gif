@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"text/tabwriter"
 )
 
 type locationType int
@@ -44,7 +43,7 @@ func AddCommand(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	writer := tabwriter.NewWriter(os.Stdout, 4, 4, 2, ' ', 0)
+	writer := image.DefaultWriter()
 	defer writer.Flush()
 
 	if s.Contains(img) {

@@ -8,15 +8,24 @@ import (
 	"text/tabwriter"
 )
 
+type FlushableWriter interface {
+	io.Writer
+	Flush() (err error)
+}
+
+func DefaultWriter() FlushableWriter {
+	return tabwriter.NewWriter(os.Stdout, 4, 4, 2, ' ', 0)
+}
+
 func (img *Image) Print() {
-	writer := tabwriter.NewWriter(os.Stdout, 4, 4, 2, ' ', 0)
+	writer := DefaultWriter()
 	defer writer.Flush()
 
 	img.PrintTo(writer)
 }
 
 func PrintAll(images []Image) {
-	writer := tabwriter.NewWriter(os.Stdout, 4, 4, 2, ' ', 0)
+	writer := DefaultWriter()
 	defer writer.Flush()
 
 	for _, img := range images {
