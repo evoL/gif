@@ -28,12 +28,23 @@ func main() {
 		typeFlags,
 		cli.BoolFlag{
 			Name:  "all, a",
-			Usage: "Gets all matching images",
+			Usage: "Gets all matching images.",
 		},
 		cli.StringFlag{
 			Name:  "order, sort, s",
 			Usage: "Specifies the order of images. Must be one of: random, newest, oldest.",
 			Value: "random",
+		},
+	)
+	removeFlags := append(
+		listFlags,
+		cli.BoolFlag{
+			Name:  "all, a",
+			Usage: "Removes all matching images.",
+		},
+		cli.BoolFlag{
+			Name:  "really",
+			Usage: "Doesn't ask for confirmation.",
 		},
 	)
 
@@ -84,6 +95,13 @@ func main() {
 			Usage:  "Lists paths to images",
 			Action: PathCommand,
 			Flags:  getFlags,
+		},
+		{
+			Name:    "remove",
+			Aliases: []string{"rm"},
+			Usage:   "Removes images",
+			Action:  RemoveCommand,
+			Flags:   removeFlags,
 		},
 	}
 	app.Before = func(c *cli.Context) (err error) {

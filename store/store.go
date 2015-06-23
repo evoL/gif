@@ -206,3 +206,40 @@ func (store *Store) UpdateTags(image *Image, tags []string) error {
 
 	return nil
 }
+
+func (s *Store) Remove(image *Image) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// Remove the file
+	err = os.Remove(s.PathFor(image))
+	if err != nil {
+		return err
+	}
+
+	// Remove from database
+	_, err = tx.Exec("DELETE FROM images WHERE id = ?", image.Id)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	image.AddedAt = nil
+
+	return nil
+}
+
+func (s *Store) RemoveAll(images []Image) (err error) {
+	for _, img := range images {
+		if err = s.Remove(&img); err != nil {
+			return
+		}
+	}
+	return
+}
