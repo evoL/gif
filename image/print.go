@@ -14,7 +14,11 @@ type FlushableWriter interface {
 }
 
 func DefaultWriter() FlushableWriter {
-	return tabwriter.NewWriter(os.Stdout, 4, 4, 2, ' ', 0)
+	return WriterFor(os.Stdout)
+}
+
+func WriterFor(writer io.Writer) FlushableWriter {
+	return tabwriter.NewWriter(writer, 4, 4, 2, ' ', 0)
 }
 
 func (img *Image) Print() {
@@ -28,6 +32,10 @@ func PrintAll(images []Image) {
 	writer := DefaultWriter()
 	defer writer.Flush()
 
+	PrintAllTo(images, writer)
+}
+
+func PrintAllTo(images []Image, writer io.Writer) {
 	for _, img := range images {
 		img.PrintTo(writer)
 	}
@@ -45,8 +53,10 @@ func (img *Image) PrintTo(writer io.Writer) {
 	fmt.Fprintf(writer, "%v\t", img.AddedAt.Format("2006-01-02 15:04:05"))
 
 	if len(img.Tags) > 0 {
-		fmt.Fprintln(writer, strings.Join(img.Tags, ", "))
+		fmt.Fprint(writer, strings.Join(img.Tags, ", "))
 	} else {
-		fmt.Fprintln(writer, "(no tags)")
+		fmt.Fprint(writer, "(no tags)")
 	}
+
+	io.WriteString(writer, "\f")
 }
