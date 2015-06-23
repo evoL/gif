@@ -52,6 +52,7 @@ func FromFile(path string) (*Image, error) {
 func fromData(data []byte) *Image {
 	image := &Image{Data: data}
 	image.Id = image.generateId()
+	image.Size = uint64(len(data))
 	return image
 }
 
