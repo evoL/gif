@@ -2,6 +2,7 @@ package image
 
 import (
 	"fmt"
+	"github.com/dustin/go-humanize"
 	"io"
 	"os"
 	"strings"
@@ -50,7 +51,7 @@ func (img *Image) PrintTo(writer io.Writer) {
 		io.WriteString(writer, "remote\t")
 	}
 
-	fmt.Fprintf(writer, "%v\t", img.Size)
+	fmt.Fprintf(writer, "%s\t", humanize.Bytes(img.Size))
 
 	fmt.Fprintf(writer, "%v\t", img.AddedAt.Format("2006-01-02 15:04:05"))
 

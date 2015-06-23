@@ -165,7 +165,7 @@ func (store *Store) List(filter Filter) (result []Image, err error) {
 			if err != nil {
 				return
 			}
-			img.Size = info.Size()
+			img.Size = uint64(info.Size())
 		}
 	}
 
