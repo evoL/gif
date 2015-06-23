@@ -26,3 +26,7 @@ _testmain.go
 
 # Executables
 /gif
+
+# Project files
+*.sublime-project
+*.sublime-workspace
