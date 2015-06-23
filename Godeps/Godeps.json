@@ -1,11 +1,18 @@
 {
 	"ImportPath": "github.com/evoL/gif",
-	"GoVersion": "go1.4",
+	"GoVersion": "go1.4.2",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/codegangsta/cli",
 			"Comment": "1.2.0-127-gad48024",
 			"Rev": "ad480243a8a6cda30acf7cd999ea3e5142154fde"
+		},
+		{
+			"ImportPath": "github.com/dustin/go-humanize",
+			"Rev": "c128122e0b9b93799aef8181a537e5d8fd7081d6"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
