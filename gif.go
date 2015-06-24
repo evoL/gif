@@ -103,6 +103,11 @@ func main() {
 			Action:  RemoveCommand,
 			Flags:   removeFlags,
 		},
+		{
+			Name:   "export",
+			Usage:  "Exports the database",
+			Action: ExportCommand,
+		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
 		err = loadConfig(c.String("config"))
