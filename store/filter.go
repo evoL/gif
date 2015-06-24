@@ -44,6 +44,20 @@ func (f IdFilter) Values() valueSlice {
 
 ///////////////////////////////////////////////////////////
 
+type ExactIdFilter struct {
+	Id string
+}
+
+func (f ExactIdFilter) Condition() string {
+	return "id = ?"
+}
+
+func (f ExactIdFilter) Values() valueSlice {
+	return valueSlice{f.Id}
+}
+
+///////////////////////////////////////////////////////////
+
 type TagFilter struct {
 	Tag string
 }

@@ -83,6 +83,23 @@ func (store *Store) Contains(image *Image) bool {
 	return result
 }
 
+func (store *Store) Get(imageId string) (image *Image, err error) {
+	filter := ExactIdFilter{Id: imageId}
+
+	var imageSlice []Image
+	imageSlice, err = store.List(filter)
+	if err != nil {
+		return
+	}
+
+	if len(imageSlice) == 0 {
+		return
+	}
+
+	image = &imageSlice[0]
+	return
+}
+
 func (store *Store) List(filter Filter) (result []Image, err error) {
 	result = make([]Image, 0)
 

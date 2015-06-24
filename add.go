@@ -31,6 +31,8 @@ func AddCommand(c *cli.Context) {
 	s := getStore()
 	defer s.Close()
 
+	// TODO: check by URL
+
 	var img *image.Image
 	switch ltype {
 	case urlLocation:
@@ -46,13 +48,16 @@ func AddCommand(c *cli.Context) {
 	writer := image.DefaultWriter()
 	defer writer.Flush()
 
-	if s.Contains(img) {
+	// Check if it already exists and show saved metadata
+	var hit *image.Image
+	hit, err = s.Get(img.Id)
+	if hit != nil && err == nil {
 		io.WriteString(writer, "[exists]\t")
-		img.PrintTo(writer)
+		hit.PrintTo(writer)
 		return
 	}
 
-	if err := s.Add(img); err != nil {
+	if err = s.Add(img); err != nil {
 		fmt.Println("Cannot save image: " + err.Error())
 		os.Exit(1)
 	}
