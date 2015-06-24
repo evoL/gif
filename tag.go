@@ -28,6 +28,11 @@ func TagCommand(c *cli.Context) {
 	s := getStore()
 	defer s.Close()
 
+	if !c.Args().Present() {
+		cli.ShowCommandHelp(c, "tag")
+		os.Exit(1)
+	}
+
 	filter := listFilter(c)
 
 	images, err := s.List(filter)
