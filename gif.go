@@ -47,6 +47,13 @@ func main() {
 			Usage: "Doesn't ask for confirmation.",
 		},
 	)
+	exportFlags := []cli.Flag{
+		cli.StringFlag{
+			Name:  "output, o",
+			Usage: "Target output file. Set to '-' for stdout.",
+			Value: "-",
+		},
+	}
 
 	app := cli.NewApp()
 	app.Name = "gif"
@@ -107,6 +114,7 @@ func main() {
 			Name:   "export",
 			Usage:  "Exports the database",
 			Action: ExportCommand,
+			Flags:  exportFlags,
 		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
