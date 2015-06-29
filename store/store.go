@@ -83,11 +83,11 @@ func (store *Store) Contains(image *Image) bool {
 	return result
 }
 
-func (store *Store) Get(imageId string) (image *Image, err error) {
-	filter := ExactIdFilter{Id: imageId}
+func (store *Store) Find(filter Filter) (image *Image, err error) {
+	limitedFilter := Limiter{Filter: filter, Limit: 1}
 
 	var imageSlice []Image
-	imageSlice, err = store.List(filter)
+	imageSlice, err = store.List(limitedFilter)
 	if err != nil {
 		return
 	}
@@ -98,6 +98,10 @@ func (store *Store) Get(imageId string) (image *Image, err error) {
 
 	image = &imageSlice[0]
 	return
+}
+
+func (store *Store) Get(imageId string) (*Image, error) {
+	return store.Find(ExactIdFilter{Id: imageId})
 }
 
 func (store *Store) List(filter Filter) (result []Image, err error) {
