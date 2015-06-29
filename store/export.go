@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"github.com/evoL/gif/image"
 	"io"
 	"os"
@@ -46,8 +45,17 @@ func (s *Store) Export(writer io.Writer, filter Filter, exportFiles bool) error 
 
 		// Add files
 		for _, img := range images {
-			fileName := fmt.Sprintf("%v.gif", img.Id)
-			imageFile, err := zipWriter.Create(fileName)
+			fileInfo, err := os.Stat(s.PathFor(&img))
+			if err != nil {
+				return err
+			}
+
+			fileHeader, err := zip.FileInfoHeader(fileInfo)
+			if err != nil {
+				return err
+			}
+
+			imageFile, err := zipWriter.CreateHeader(fileHeader)
 			if err != nil {
 				return err
 			}
