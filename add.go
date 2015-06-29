@@ -14,7 +14,8 @@ type locationType int
 
 const (
 	invalidLocation locationType = iota
-	pathLocation
+	fileLocation
+	directoryLocation
 	urlLocation
 )
 
@@ -37,8 +38,11 @@ func AddCommand(c *cli.Context) {
 	switch ltype {
 	case urlLocation:
 		img, err = image.FromUrl(location)
-	case pathLocation:
+	case fileLocation:
 		img, err = image.FromFile(location)
+	case directoryLocation:
+		fmt.Println("Cannot add a directory.")
+		os.Exit(1)
 	}
 	if err != nil {
 		fmt.Println("Cannot load image: " + err.Error())
@@ -88,9 +92,12 @@ func parseLocation(location string) (locationType, error) {
 	}
 
 	// Check for path
-	_, err = os.Stat(location)
+	fileInfo, err := os.Stat(location)
 	if err == nil {
-		return pathLocation, nil
+		if fileInfo.IsDir() {
+			return directoryLocation, nil
+		}
+		return fileLocation, nil
 	}
 
 	return invalidLocation, errors.New("Invalid location")
