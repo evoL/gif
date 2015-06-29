@@ -53,6 +53,10 @@ func main() {
 			Usage: "Target output file. Set to '-' for stdout.",
 			Value: "-",
 		},
+		cli.BoolFlag{
+			Name:  "zip",
+			Usage: "Export a zip file containing all images and metadata.",
+		},
 	}
 
 	app := cli.NewApp()

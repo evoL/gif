@@ -29,7 +29,7 @@ func ExportCommand(c *cli.Context) {
 	writer := bufio.NewWriter(targetFile)
 	defer writer.Flush()
 
-	err = s.Export(writer, store.NullFilter{}, false)
+	err = s.Export(writer, store.NullFilter{}, c.Bool("zip"))
 	if err != nil {
 		fmt.Println("Export error: " + err.Error())
 		os.Exit(1)

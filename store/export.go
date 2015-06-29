@@ -1,11 +1,13 @@
 package store
 
 import (
-	"bytes"
+	"archive/zip"
+	"bufio"
 	"encoding/json"
+	"fmt"
 	"github.com/evoL/gif/image"
 	"io"
-	// "zip"
+	"os"
 )
 
 type exportedImage struct {
@@ -28,14 +30,41 @@ func (s *Store) Export(writer io.Writer, filter Filter, exportFiles bool) error 
 	exportedImages := prepareImages(images)
 
 	if exportFiles {
-		buffer := new(bytes.Buffer)
+		zipWriter := zip.NewWriter(writer)
+		defer zipWriter.Close()
 
-		err = exportMetadata(exportedImages, buffer)
+		// Create a file with metadata
+		metadataFile, err := zipWriter.Create("gif.json")
 		if err != nil {
 			return err
 		}
 
-		// TODO: make a zip
+		err = exportMetadata(exportedImages, metadataFile)
+		if err != nil {
+			return err
+		}
+
+		// Add files
+		for _, img := range images {
+			fileName := fmt.Sprintf("%v.gif", img.Id)
+			imageFile, err := zipWriter.Create(fileName)
+			if err != nil {
+				return err
+			}
+
+			file, err := os.Open(s.PathFor(&img))
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			bufferedReader := bufio.NewReader(file)
+			_, err = bufferedReader.WriteTo(imageFile)
+			if err != nil {
+				return err
+			}
+		}
+
 	} else {
 		err = exportMetadata(exportedImages, writer)
 		if err != nil {
