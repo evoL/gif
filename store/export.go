@@ -101,11 +101,11 @@ func exportMetadata(images []exportedImage, writer io.Writer) error {
 		Images:  images,
 	}
 
-	bytes, err := json.Marshal(output)
-	if err != nil {
+	encoder := json.NewEncoder(writer)
+
+	if err := encoder.Encode(output); err != nil {
 		return err
 	}
 
-	_, err = writer.Write(bytes)
-	return err
+	return nil
 }
