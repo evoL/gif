@@ -1,12 +1,15 @@
 package store
 
 import (
-	"archive/zip"
+	"archive/tar"
 	"bufio"
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"github.com/evoL/gif/image"
 	"io"
 	"os"
+	"time"
 )
 
 type exportedImage struct {
@@ -29,16 +32,31 @@ func (s *Store) Export(writer io.Writer, filter Filter, exportFiles bool) error 
 	exportedImages := prepareImages(images)
 
 	if exportFiles {
-		zipWriter := zip.NewWriter(writer)
-		defer zipWriter.Close()
+		gzipWriter := gzip.NewWriter(writer)
+		defer gzipWriter.Close()
+
+		tarWriter := tar.NewWriter(gzipWriter)
+		defer tarWriter.Close()
 
 		// Create a file with metadata
-		metadataFile, err := zipWriter.Create("gif.json")
+		metadataBuffer := new(bytes.Buffer)
+		err = exportMetadata(exportedImages, metadataBuffer)
 		if err != nil {
 			return err
 		}
 
-		err = exportMetadata(exportedImages, metadataFile)
+		metadataHeader := &tar.Header{
+			Name:    "gif.json",
+			Mode:    0644,
+			Size:    int64(metadataBuffer.Len()),
+			ModTime: time.Now(),
+		}
+
+		if err = tarWriter.WriteHeader(metadataHeader); err != nil {
+			return err
+		}
+
+		_, err = tarWriter.Write(metadataBuffer.Bytes())
 		if err != nil {
 			return err
 		}
@@ -50,13 +68,12 @@ func (s *Store) Export(writer io.Writer, filter Filter, exportFiles bool) error 
 				return err
 			}
 
-			fileHeader, err := zip.FileInfoHeader(fileInfo)
+			fileHeader, err := tar.FileInfoHeader(fileInfo, "")
 			if err != nil {
 				return err
 			}
 
-			imageFile, err := zipWriter.CreateHeader(fileHeader)
-			if err != nil {
+			if err = tarWriter.WriteHeader(fileHeader); err != nil {
 				return err
 			}
 
@@ -67,10 +84,14 @@ func (s *Store) Export(writer io.Writer, filter Filter, exportFiles bool) error 
 			defer file.Close()
 
 			bufferedReader := bufio.NewReader(file)
-			_, err = bufferedReader.WriteTo(imageFile)
+			_, err = bufferedReader.WriteTo(tarWriter)
 			if err != nil {
 				return err
 			}
+		}
+
+		if err = tarWriter.Close(); err != nil {
+			return err
 		}
 
 	} else {

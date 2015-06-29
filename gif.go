@@ -54,8 +54,8 @@ func main() {
 			Value: "-",
 		},
 		cli.BoolFlag{
-			Name:  "zip",
-			Usage: "Export a zip file containing all images and metadata.",
+			Name:  "bundle",
+			Usage: "Export a bundle containing all images and metadata.",
 		},
 	}
 

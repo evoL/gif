@@ -6,7 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/store"
 	"os"
-	"strings"
+	"regexp"
 )
 
 func ExportCommand(c *cli.Context) {
@@ -27,8 +27,8 @@ func ExportCommand(c *cli.Context) {
 		}
 	}
 
-	// Detect .zip file extension and enable full export
-	exportFiles := c.Bool("zip") || strings.HasSuffix(output, ".zip")
+	// Detect file extension and enable full export
+	exportFiles := c.Bool("bundle") || regexp.MustCompile(`(?:\.tar\.gz|\.gifb)\z`).MatchString(output)
 
 	writer := bufio.NewWriter(targetFile)
 	defer writer.Flush()

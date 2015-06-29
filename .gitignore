@@ -31,5 +31,6 @@ _testmain.go
 *.sublime-project
 *.sublime-workspace
 
-# Zip files (gif exports to zip)
+# gif bundles
 *.zip
+*.tar.gz
