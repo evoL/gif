@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/image"
+	"github.com/evoL/gif/store"
 	"io"
 	"net/url"
 	"os"
@@ -32,11 +33,20 @@ func AddCommand(c *cli.Context) {
 	s := getStore()
 	defer s.Close()
 
-	// TODO: check by URL
+	writer := image.DefaultWriter()
+	defer writer.Flush()
 
 	var img *image.Image
 	switch ltype {
 	case urlLocation:
+		// Check duplicates by URL
+		img, _ = s.Find(store.UrlFilter{Url: location})
+		if img != nil {
+			io.WriteString(writer, "[exists]\t")
+			img.PrintTo(writer)
+			return
+		}
+
 		img, err = image.FromUrl(location)
 	case fileLocation:
 		img, err = image.FromFile(location)
@@ -48,9 +58,6 @@ func AddCommand(c *cli.Context) {
 		fmt.Println("Cannot load image: " + err.Error())
 		os.Exit(1)
 	}
-
-	writer := image.DefaultWriter()
-	defer writer.Flush()
 
 	// Check if it already exists and show saved metadata
 	var hit *image.Image

@@ -58,6 +58,20 @@ func (f ExactIdFilter) Values() valueSlice {
 
 ///////////////////////////////////////////////////////////
 
+type UrlFilter struct {
+	Url string
+}
+
+func (f UrlFilter) Condition() string {
+	return "url = ?"
+}
+
+func (f UrlFilter) Values() valueSlice {
+	return valueSlice{f.Url}
+}
+
+///////////////////////////////////////////////////////////
+
 type TagFilter struct {
 	Tag string
 }
