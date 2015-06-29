@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/config"
 	"github.com/evoL/gif/store"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -120,6 +122,11 @@ func main() {
 			Action: ExportCommand,
 			Flags:  exportFlags,
 		},
+		{
+			Name:   "import",
+			Usage:  "Imports multiple images into the database",
+			Action: ImportCommand,
+		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
 		err = loadConfig(c.String("config"))
@@ -134,6 +141,15 @@ func ConfigCommand(c *cli.Context) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+type locationType int
+
+const (
+	invalidLocation locationType = iota
+	fileLocation
+	directoryLocation
+	urlLocation
+)
 
 func loadConfig(arg string) (err error) {
 	if arg == "default" {
@@ -205,4 +221,31 @@ func orderAndLimit(input store.Filter, c *cli.Context) (filter store.Filter) {
 	}
 
 	return
+}
+
+func parseLocation(location string) (locationType, error) {
+	if location == "" {
+		return invalidLocation, errors.New("No location specified")
+	}
+
+	// Check for URL
+	u, err := url.Parse(location)
+	if err == nil {
+		if u.Scheme == "http" || u.Scheme == "https" {
+			return urlLocation, nil
+		} else if u.Scheme != "" {
+			return urlLocation, errors.New("Only HTTP and HTTPS URLs are supported")
+		}
+	}
+
+	// Check for path
+	fileInfo, err := os.Stat(location)
+	if err == nil {
+		if fileInfo.IsDir() {
+			return directoryLocation, nil
+		}
+		return fileLocation, nil
+	}
+
+	return invalidLocation, errors.New("Invalid location")
 }

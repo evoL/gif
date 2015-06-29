@@ -34,7 +34,7 @@ func FromUrl(url string) (*Image, error) {
 		return nil, err
 	}
 
-	image := fromData(data)
+	image := FromData(data)
 	image.Url = url
 	return image, nil
 }
@@ -45,11 +45,11 @@ func FromFile(path string) (*Image, error) {
 		return nil, err
 	}
 
-	image := fromData(data)
+	image := FromData(data)
 	return image, nil
 }
 
-func fromData(data []byte) *Image {
+func FromData(data []byte) *Image {
 	image := &Image{Data: data}
 	image.Id = image.generateId()
 	image.Size = uint64(len(data))

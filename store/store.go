@@ -17,6 +17,17 @@ type Store struct {
 	db   *sql.DB
 }
 
+type ExportedImage struct {
+	Id   string
+	Url  string
+	Tags []string
+}
+
+type ExportFormat struct {
+	Creator string
+	Images  []ExportedImage
+}
+
 func Default() (*Store, error) {
 	return New(config.Global.StorePath)
 }

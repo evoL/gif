@@ -1,23 +1,12 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/image"
 	"github.com/evoL/gif/store"
 	"io"
-	"net/url"
 	"os"
-)
-
-type locationType int
-
-const (
-	invalidLocation locationType = iota
-	fileLocation
-	directoryLocation
-	urlLocation
 )
 
 func AddCommand(c *cli.Context) {
@@ -59,9 +48,14 @@ func AddCommand(c *cli.Context) {
 		os.Exit(1)
 	}
 
+	AddInterface(s, writer, img, true)
+	return
+}
+
+func AddInterface(s *store.Store, writer image.FlushableWriter, img *image.Image, replaceTags bool) {
 	// Check if it already exists and show saved metadata
 	var hit *image.Image
-	hit, err = s.Get(img.Id)
+	hit, err := s.Get(img.Id)
 	if hit != nil && err == nil {
 		io.WriteString(writer, "[exists]\t")
 		hit.PrintTo(writer)
@@ -73,39 +67,17 @@ func AddCommand(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	err = TagInterface(s, img)
+	if replaceTags {
+		err = TagInterface(s, img)
+	} else {
+		err = s.UpdateTags(img, img.Tags)
+	}
 	if err != nil {
 		fmt.Println("Cannot save tags: " + err.Error())
 	}
 
 	io.WriteString(writer, "[added]\t")
 	img.PrintTo(writer)
+
 	return
-}
-
-func parseLocation(location string) (locationType, error) {
-	if location == "" {
-		return invalidLocation, errors.New("No image specified")
-	}
-
-	// Check for URL
-	u, err := url.Parse(location)
-	if err == nil {
-		if u.Scheme == "http" || u.Scheme == "https" {
-			return urlLocation, nil
-		} else if u.Scheme != "" {
-			return urlLocation, errors.New("Only HTTP and HTTPS URLs are supported")
-		}
-	}
-
-	// Check for path
-	fileInfo, err := os.Stat(location)
-	if err == nil {
-		if fileInfo.IsDir() {
-			return directoryLocation, nil
-		}
-		return fileLocation, nil
-	}
-
-	return invalidLocation, errors.New("Invalid location")
 }

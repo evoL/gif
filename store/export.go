@@ -12,17 +12,6 @@ import (
 	"time"
 )
 
-type exportedImage struct {
-	Id   string
-	Url  string
-	Tags []string
-}
-
-type metadata struct {
-	Creator string
-	Images  []exportedImage
-}
-
 func (s *Store) Export(writer io.Writer, filter Filter, exportFiles bool) error {
 	images, err := s.List(filter)
 	if err != nil {
@@ -104,8 +93,8 @@ func (s *Store) Export(writer io.Writer, filter Filter, exportFiles bool) error 
 	return nil
 }
 
-func prepareImages(images []image.Image) (exportedImages []exportedImage) {
-	exportedImages = make([]exportedImage, len(images))
+func prepareImages(images []image.Image) (exportedImages []ExportedImage) {
+	exportedImages = make([]ExportedImage, len(images))
 
 	for i, img := range images {
 		exportedImages[i].Id = img.Id
@@ -116,8 +105,8 @@ func prepareImages(images []image.Image) (exportedImages []exportedImage) {
 	return
 }
 
-func exportMetadata(images []exportedImage, writer io.Writer) error {
-	output := metadata{
+func exportMetadata(images []ExportedImage, writer io.Writer) error {
+	output := ExportFormat{
 		Creator: "gif",
 		Images:  images,
 	}
