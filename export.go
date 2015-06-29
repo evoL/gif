@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/store"
 	"os"
+	"strings"
 )
 
 func ExportCommand(c *cli.Context) {
@@ -26,10 +27,13 @@ func ExportCommand(c *cli.Context) {
 		}
 	}
 
+	// Detect .zip file extension and enable full export
+	exportFiles := c.Bool("zip") || strings.HasSuffix(output, ".zip")
+
 	writer := bufio.NewWriter(targetFile)
 	defer writer.Flush()
 
-	err = s.Export(writer, store.NullFilter{}, c.Bool("zip"))
+	err = s.Export(writer, store.NullFilter{}, exportFiles)
 	if err != nil {
 		fmt.Println("Export error: " + err.Error())
 		os.Exit(1)
