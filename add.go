@@ -53,11 +53,21 @@ func AddCommand(c *cli.Context) {
 }
 
 func AddInterface(s *store.Store, writer image.FlushableWriter, img *image.Image, replaceTags bool) {
-	// Check if it already exists and show saved metadata
+	// Check if it already exists and show metadata
 	var hit *image.Image
 	hit, err := s.Get(img.Id)
 	if hit != nil && err == nil {
-		io.WriteString(writer, "[exists]\t")
+		// Check if the URL can be updated
+		if img.Url != "" && img.Url != hit.Url {
+			err = s.UpdateUrl(hit, img.Url)
+			if err == nil {
+				io.WriteString(writer, "[update]\t")
+			} else {
+				io.WriteString(writer, "[unchgd]\t")
+			}
+		} else {
+			io.WriteString(writer, "[exists]\t")
+		}
 		hit.PrintTo(writer)
 		return
 	}

@@ -211,6 +211,27 @@ func (store *Store) List(filter Filter) (result []Image, err error) {
 	return
 }
 
+func (store *Store) UpdateUrl(image *Image, url string) error {
+	tx, err := store.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("UPDATE images SET url = ? WHERE id = ?", url, image.Id)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	image.Url = url
+
+	return nil
+}
+
 func (store *Store) UpdateTags(image *Image, tags []string) error {
 	tx, err := store.db.Begin()
 	if err != nil {
