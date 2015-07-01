@@ -60,6 +60,12 @@ func main() {
 			Usage: "Export a bundle containing all images and metadata.",
 		},
 	}
+	importFlags := []cli.Flag{
+		cli.BoolFlag{
+			Name:  "recursive, r",
+			Usage: "When importing directories, do it recursively.",
+		},
+	}
 
 	app := cli.NewApp()
 	app.Name = "gif"
@@ -126,6 +132,7 @@ func main() {
 			Name:   "import",
 			Usage:  "Imports multiple images into the database",
 			Action: ImportCommand,
+			Flags:  importFlags,
 		},
 	}
 	app.Before = func(c *cli.Context) (err error) {

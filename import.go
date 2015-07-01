@@ -16,9 +16,19 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
+
+var extensionWhitelist = [...]string{"gif", "jpeg", "jpg", "png", "webp"}
+var extensionWhitelistMap map[string]struct{} = make(map[string]struct{})
+
+func computeWhitelist() {
+	for _, ext := range extensionWhitelist {
+		extensionWhitelistMap[ext] = struct{}{}
+	}
+}
 
 func ImportCommand(c *cli.Context) {
 	location := c.Args().First()
@@ -39,7 +49,7 @@ func ImportCommand(c *cli.Context) {
 	case fileLocation:
 		importFromFile(s, location)
 	case directoryLocation:
-		importDirectory(s, location)
+		importDirectory(s, filepath.Clean(location), c.Bool("recursive"))
 	}
 }
 
@@ -78,8 +88,43 @@ func importFromFile(s *store.Store, location string) {
 	}
 }
 
-func importDirectory(s *store.Store, location string) {
-	fmt.Println("Importing directories is currently not supported.")
+func importDirectory(s *store.Store, location string, recursive bool) {
+	if len(extensionWhitelistMap) == 0 {
+		computeWhitelist()
+	}
+
+	writer := image.DefaultWriter()
+	defer writer.Flush()
+
+	entries, err := ioutil.ReadDir(location)
+	if err != nil {
+		fmt.Println("Import Error: " + err.Error())
+		os.Exit(1)
+	}
+
+	for _, entry := range entries {
+		currentPath := filepath.Join(location, entry.Name())
+
+		if entry.IsDir() {
+			if recursive {
+				importDirectory(s, currentPath, recursive)
+			}
+		} else {
+			extension := filepath.Ext(currentPath)[1:]
+
+			if _, ok := extensionWhitelistMap[extension]; ok {
+				img, err := image.FromFile(currentPath)
+				if err != nil {
+					fmt.Fprintf(writer, "[error]\t%s: %s\f", currentPath, err.Error())
+					continue
+				}
+
+				img.Tags = []string{entry.Name()}
+
+				AddInterface(s, writer, img, false)
+			}
+		}
+	}
 }
 
 func importFromReader(s *store.Store, reader io.Reader) error {
