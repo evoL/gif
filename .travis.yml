@@ -1,25 +1,42 @@
 language: go
 go: 1.4.2
+
 env:
-- GIMME_OS=darwin GIMME_ARCH=386 CGO_ENABLED=true
-- GIMME_OS=darwin GIMME_ARCH=amd64 CGO_ENABLED=true
-- GIMME_OS=linux GIMME_ARCH=386 CGO_ENABLED=true
-- GIMME_OS=linux GIMME_ARCH=amd64 CGO_ENABLED=true
-- GIMME_OS=windows GIMME_ARCH=386 CGO_ENABLED=true
-- GIMME_OS=windows GIMME_ARCH=amd64 CGO_ENABLED=true
-script: make
+  - GIF_OS=darwin GIF_ARCH=386
+  - GIF_OS=darwin GIF_ARCH=amd64
+  - GIF_OS=linux GIF_ARCH=386
+  - GIF_OS=linux GIF_ARCH=amd64
+  - GIF_OS=windows GIF_ARCH=386 GIF_BINARY_SUFFIX=.exe
+  - GIF_OS=windows GIF_ARCH=amd64 GIF_BINARY_SUFFIX=.exe
+
+addons:
+  apt:
+    packages:
+      # linux/386
+      - libc6-dev-i386
+      # darwin
+      - libxml2-dev
+      - uuid-dev
+      - libssl-dev
+      # windows
+      - mingw-w64
+
+before_install:
+  - ./setup_darwin.sh
+  - export PATH=/tmp/osxcross/target/bin:$PATH
+  - go get github.com/mitchellh/gox
+
+before_script: gox -os=$GIF_OS -arch=$GIF_ARCH -cgo -build-toolchain
+
+script: ./crosscompile.sh
+
 deploy:
   provider: releases
   api_key:
     secure: olezWxdH3ajEF7LkVIHB5QVlkG9m6rL14SFnkk7lyyatLQQHDRtGNKXecR0W7mYs4Xw6g4jq/rzPvSRv/Kp0pblKj0btYyrXkNtnq1GQxBgCswnelDsNa49aw2i7ucj9oT0GAVF+mnCa3hYpqUf3TOfm8ThQvn8ccrn492DvI+oKytyCPsKb+SS63q9VKAOYFWELhf76zNPviiKz8zQBNToleX1MpAbHMXsZR+kQCwgnn975k3Qugdu3U1VeGRgVFeCyOhu0lJ5tJmvhnjAT20gv5U7GOYulIehbklR8nTgfWVmm8F5dKtVXSOEttx+CxCkLBE6zJLWsVlLMuML8Pwrxwx/PspvH5ICca9YEQBvysa+xg1T9Wu9E+qmrdsnxJISD85lYMEDkyGsQBdVVpjkABmBctMtqO9Ju2tmJ9+twcF9yGH4L9TX9BAftBlhJQnAss9UrapY0/rlURs2rHB0VLg5lozuh3ck2C8jRjDjn3wnO5uItzjJytuC0deEF3yZ7xAFre3yU8+MFKNnmcpKM9w/Tm6d2ePrsUoXEwCdEJk2C8bUzy9mzkr9RRSJ4tQ36rS+mHIxGMnMgmclgvmN3UnoW2/JhsLEi2mQ0Hh+t6WIckR5c50mn7Jtav2rIFijTsUzXZg1IBYo0LqVKWni4clBTkf3w06peiV8JpFk=
-  file:
-    - gif_darwin_386
-    - gif_darwin_amd64
-    - gif_linux_386
-    - gif_linux_amd64
-    - gif_windows_386.exe
-    - gif_windows_amd64.exe
-  skip_tags: true
+  file_glob: true
+  file: ${TRAVIS_BUILD_DIR}/gif_${GIF_OS}_${GIF_ARCH}${GIF_BINARY_SUFFIX}
+  skip_cleanup: true
   on:
     repo: evoL/gif
     tags: true
