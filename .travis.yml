@@ -56,3 +56,6 @@ deploy:
     acl: public_read
     on:
       repo: evoL/gif
+
+notifications:
+  email: false
