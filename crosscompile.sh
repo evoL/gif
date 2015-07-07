@@ -20,6 +20,6 @@ case "$osarch" in
 esac
 
 # Build it!
-GIT_VERSION="$(git describe --tags HEAD)"
-
-gox -osarch="$osarch" -cgo -ldflags="-X github.com/evoL/gif/version.Version ${GIT_VERSION}"
+mkdir build
+cd build
+gox -osarch="$osarch" -cgo -ldflags="-X github.com/evoL/gif/version.Version ${GIF_VERSION}" ..
