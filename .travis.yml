@@ -6,14 +6,15 @@ env:
   - GIF_OS=darwin GIF_ARCH=amd64
   - GIF_OS=linux GIF_ARCH=386
   - GIF_OS=linux GIF_ARCH=amd64
-  - GIF_OS=windows GIF_ARCH=386 GIF_BINARY_SUFFIX=.exe
-  - GIF_OS=windows GIF_ARCH=amd64 GIF_BINARY_SUFFIX=.exe
+  #- GIF_OS=windows GIF_ARCH=386 GIF_BINARY_SUFFIX=.exe
+  #- GIF_OS=windows GIF_ARCH=amd64 GIF_BINARY_SUFFIX=.exe
 
 addons:
   apt:
     packages:
       # linux/386
       - libc6-dev-i386
+      - gcc-multilib
       # darwin
       - libxml2-dev
       - uuid-dev
