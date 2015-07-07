@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ev
 
-if [ $GIF_OS='darwin' ]; then
+if [ "$GIF_OS" == "darwin" ]; then
   # Download osxcross to prepare the C toolchain
   git clone https://github.com/tpoechtrager/osxcross /tmp/osxcross
   cd /tmp/osxcross
