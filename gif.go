@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/config"
 	"github.com/evoL/gif/store"
+	"github.com/evoL/gif/version"
 	"net/url"
 	"os"
 	"regexp"
@@ -72,7 +73,7 @@ func main() {
 	app.Usage = "a stupid gif manager"
 	app.Author = "Rafał Hirsz"
 	app.Email = "rafal@hirsz.co"
-	app.Version = "0.1.0-pre"
+	app.Version = version.Version
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "config, c",
