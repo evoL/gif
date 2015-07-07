@@ -49,7 +49,7 @@ deploy:
     access_key_id: AKIAJAS4SQCYADGBXUMA
     secret_access_key:
       secure: Y55AEbQUQ5TS1365xcxIUx0t+5uy4dlwBnZeyo+GVVbIMcA3qqAL6s2YYsHnJrwekQPlm/kVU6e+yOFVwtXo/4bHNqOHi3SQ18MvCAkliyG24t3uehXYoXvNqHhuvHCQwlBuos5QYW5fdVTmY6a4B/FYzy8SldJJ+qX/0HsenYNe72Y4MTtAOipIE+qtfhgCamEdALa9qjCoYQjL2drlu4PWHWy8qDQMxlPTc68b3I5S4h8Z/chOqo7Llv4cBzY06+o4u/sKKjPN7diJJACbRKyEfPaPp9EqyO9DYDLabWeUC72VDyYKv9XR1uJgLv87d/WPpXuLBhyPZjNU9zq4bTRRtyfmCLsda7eoZ/jalhgZMCtdk8gy/NIkD3U26MFq40YbNEtKoPJ3dDb1gK4S58aW1YvIwpE0blEpb0OUVsEpebaRzlYa79w03tEu4EwRfqQx+8beF8rX6KztiN5lXWtILmgiBn/06L7W30aJjjM+HDAByDlF6B0/FMEaidvfqJ+WE5dkFzCMYkyj0vZEAMfF3YNaiP0eTtf9KPLbauIryKd8/Poow3CpZ3THWhNbqWJk03R6KO8rwTJWXE1gelUpzks2WYBj14agmsbfVCW8bwS3SclfKyNBgFSEMS2qK3GaPZj4b0BvViuajWTp8nnPbqNkzVt3BFqT71zwjeE=
-    bucket: gif-builds
+    bucket: gif-build
     local-dir: build
     upload-dir: gif-${GIF_VERSION}
     skip_cleanup: true
