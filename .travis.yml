@@ -1,0 +1,25 @@
+language: go
+go: 1.4.2
+env:
+- GIMME_OS=darwin GIMME_ARCH=386
+- GIMME_OS=darwin GIMME_ARCH=amd64
+- GIMME_OS=linux GIMME_ARCH=386
+- GIMME_OS=linux GIMME_ARCH=amd64
+- GIMME_OS=windows GIMME_ARCH=386
+- GIMME_OS=windows GIMME_ARCH=amd64
+script: make
+deploy:
+  provider: releases
+  api_key:
+    secure: olezWxdH3ajEF7LkVIHB5QVlkG9m6rL14SFnkk7lyyatLQQHDRtGNKXecR0W7mYs4Xw6g4jq/rzPvSRv/Kp0pblKj0btYyrXkNtnq1GQxBgCswnelDsNa49aw2i7ucj9oT0GAVF+mnCa3hYpqUf3TOfm8ThQvn8ccrn492DvI+oKytyCPsKb+SS63q9VKAOYFWELhf76zNPviiKz8zQBNToleX1MpAbHMXsZR+kQCwgnn975k3Qugdu3U1VeGRgVFeCyOhu0lJ5tJmvhnjAT20gv5U7GOYulIehbklR8nTgfWVmm8F5dKtVXSOEttx+CxCkLBE6zJLWsVlLMuML8Pwrxwx/PspvH5ICca9YEQBvysa+xg1T9Wu9E+qmrdsnxJISD85lYMEDkyGsQBdVVpjkABmBctMtqO9Ju2tmJ9+twcF9yGH4L9TX9BAftBlhJQnAss9UrapY0/rlURs2rHB0VLg5lozuh3ck2C8jRjDjn3wnO5uItzjJytuC0deEF3yZ7xAFre3yU8+MFKNnmcpKM9w/Tm6d2ePrsUoXEwCdEJk2C8bUzy9mzkr9RRSJ4tQ36rS+mHIxGMnMgmclgvmN3UnoW2/JhsLEi2mQ0Hh+t6WIckR5c50mn7Jtav2rIFijTsUzXZg1IBYo0LqVKWni4clBTkf3w06peiV8JpFk=
+  file:
+    - gif_darwin_386
+    - gif_darwin_amd64
+    - gif_linux_386
+    - gif_linux_amd64
+    - gif_windows_386.exe
+    - gif_windows_amd64.exe
+  skip_tags: true
+  on:
+    repo: evoL/gif
+    tags: true
