@@ -20,6 +20,7 @@ addons:
       - uuid-dev
       - libssl-dev
       # windows
+      - gcc-mingw-w64
       - mingw-w64
 
 before_install:
