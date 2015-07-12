@@ -1,5 +1,6 @@
 language: go
 go: 1.4.2
+sudo: required
 
 env:
   - GIF_OS=darwin GIF_ARCH=386
@@ -20,10 +21,11 @@ addons:
       - uuid-dev
       - libssl-dev
       # windows
-      - gcc-mingw-w64
-      - mingw-w64
+      # - gcc-mingw-w64
+      # - mingw-w64
 
 before_install:
+  - sudo apt-get install -y mingw-w64
   - ./setup_darwin.sh
   - export PATH=/tmp/osxcross/target/bin:$PATH
   - go get github.com/mitchellh/gox
