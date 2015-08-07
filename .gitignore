@@ -34,3 +34,6 @@ _testmain.go
 # gif bundles
 *.zip
 *.tar.gz
+
+# test config file, so I don't break my db
+testconfig.json
