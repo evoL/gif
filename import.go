@@ -110,7 +110,12 @@ func importDirectory(s *store.Store, location string, recursive bool) {
 				importDirectory(s, currentPath, recursive)
 			}
 		} else {
-			extension := filepath.Ext(currentPath)[1:]
+			extensionWithDot := filepath.Ext(currentPath)
+			if extensionWithDot == "" {
+				continue
+			}
+
+			extension := extensionWithDot[1:]
 
 			if _, ok := extensionWhitelistMap[extension]; ok {
 				img, err := image.FromFile(currentPath)
