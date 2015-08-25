@@ -18,6 +18,10 @@ type Image struct {
 	Size    uint64
 }
 
+func (i *Image) IsHydrated() bool {
+	return len(i.Data) > 0
+}
+
 func FromUrl(url string) (*Image, error) {
 	response, err := http.Get(url)
 	if err != nil {

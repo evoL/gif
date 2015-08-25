@@ -304,3 +304,9 @@ func (s *Store) RemoveAll(images []Image) (err error) {
 	}
 	return
 }
+
+func (s *Store) Hydrate(img *Image) (err error) {
+	path := s.PathFor(img)
+	img.Data, err = ioutil.ReadFile(path)
+	return
+}
