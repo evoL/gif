@@ -66,10 +66,6 @@ func (u ImgurUploader) Upload(img *image.Image) (bool, error) {
 	request.Header.Add("Content-Type", writer.FormDataContentType())
 	request.Header.Add("User-Agent", "gif/"+version.Version)
 
-	// testfile, _ := os.Create("request.txt")
-	// defer testfile.Close()
-	// request.Write(testfile)
-
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
