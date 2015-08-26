@@ -68,6 +68,13 @@ func main() {
 			Usage: "When importing directories, do it recursively.",
 		},
 	}
+	uploadFlags := append(
+		typeFlags,
+		cli.BoolFlag{
+			Name:  "really",
+			Usage: "Doesn't ask for confirmation.",
+		},
+	)
 
 	app := cli.NewApp()
 	app.Name = "gif"
@@ -135,6 +142,12 @@ func main() {
 			Usage:  "Imports multiple images into the database",
 			Action: ImportCommand,
 			Flags:  importFlags,
+		},
+		{
+			Name:   "upload",
+			Usage:  "Uploads images to a server and saves the URLs for later use",
+			Action: UploadCommand,
+			Flags:  uploadFlags,
 		},
 	}
 	app.Before = func(c *cli.Context) (err error) {

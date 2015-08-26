@@ -13,6 +13,10 @@ type Config struct {
 		Driver     string
 		DataSource string
 	}
+	Upload struct {
+		Provider    string
+		Credentials map[string]string
+	}
 }
 
 var Global *Config
@@ -47,6 +51,7 @@ func defaultConfig() (config *Config) {
 	config.StorePath = path.Join(current.HomeDir, ".gif", "store")
 	config.Db.Driver = "sqlite3"
 	config.Db.DataSource = path.Join(current.HomeDir, ".gif", "gif.db")
+	config.Upload.Provider = "imgur"
 
 	return
 }
