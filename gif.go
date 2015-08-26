@@ -19,14 +19,15 @@ func main() {
 			Name:  "tag, t",
 			Usage: "Enforces searching by tag.",
 		},
-	}
-	listFlags := append(
-		typeFlags,
 		cli.BoolFlag{
 			Name:  "untagged",
 			Usage: "Lists only images that have no tag.",
 		},
-	)
+		cli.BoolFlag{
+			Name:  "local",
+			Usage: "Lists only images that are local, that is not avaliable remotely.",
+		},
+	}
 	getFlags := append(
 		typeFlags,
 		cli.BoolFlag{
@@ -40,7 +41,7 @@ func main() {
 		},
 	)
 	removeFlags := append(
-		listFlags,
+		typeFlags,
 		cli.BoolFlag{
 			Name:  "all, a",
 			Usage: "Removes all matching images.",
@@ -96,13 +97,13 @@ func main() {
 			Name:   "tag",
 			Usage:  "Enables to change tags for images",
 			Action: TagCommand,
-			Flags:  listFlags,
+			Flags:  typeFlags,
 		},
 		{
 			Name:   "list",
 			Usage:  "Lists stored images",
 			Action: ListCommand,
-			Flags:  listFlags,
+			Flags:  typeFlags,
 		},
 		{
 			Name:   "url",
@@ -190,25 +191,24 @@ func typeFilter(c *cli.Context) (filter store.Filter) {
 		} else {
 			filter = store.TagFilter{Tag: arg}
 		}
+	} else if c.Bool("untagged") {
+		filter = store.UntaggedFilter{}
 	} else {
 		filter = store.NullFilter{}
+	}
+
+	if c.Bool("local") {
+		filter = store.LocalFilter{Filter: filter}
 	}
 
 	return
 }
 
-func listFilter(c *cli.Context) (filter store.Filter) {
-	if c.Bool("untagged") {
-		filter = store.UntaggedFilter{}
-	} else {
-		filter = typeFilter(c)
-	}
-	filter = store.DateOrderer{
-		Filter:    filter,
+func listFilter(c *cli.Context) store.Filter {
+	return store.DateOrderer{
+		Filter:    typeFilter(c),
 		Direction: store.Descending,
 	}
-
-	return
 }
 
 func orderAndLimit(input store.Filter, c *cli.Context) (filter store.Filter) {

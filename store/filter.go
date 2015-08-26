@@ -109,6 +109,19 @@ func (f RemoteFilter) Values() valueSlice {
 
 ///////////////////////////////////////////////////////////
 
+type LocalFilter struct {
+	Filter Filter
+}
+
+func (f LocalFilter) Condition() string {
+	return f.Filter.Condition() + " AND url IS NULL"
+}
+func (f LocalFilter) Values() valueSlice {
+	return f.Filter.Values()
+}
+
+///////////////////////////////////////////////////////////
+
 type RandomOrderer struct {
 	Filter Filter
 }
