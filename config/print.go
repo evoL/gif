@@ -28,9 +28,29 @@ func printStruct(writer *tabwriter.Writer, val reflect.Value, level int) {
 		switch field.Kind() {
 		case reflect.String:
 			fmt.Fprintf(writer, "%s\t%s\n", t.Field(i).Name, field.String())
+		case reflect.Map:
+			fmt.Fprintf(writer, "%s", t.Field(i).Name)
+			if field.Len() == 0 {
+				fmt.Fprintln(writer, "\t(none)")
+			} else {
+				fmt.Fprintln(writer)
+			}
+			printMap(writer, field, level+1)
 		case reflect.Struct:
 			fmt.Fprintf(writer, "%s\n", t.Field(i).Name)
 			printStruct(writer, field, level+1)
 		}
+	}
+}
+
+func printMap(writer *tabwriter.Writer, mapValue reflect.Value, level int) {
+	for _, keyValue := range mapValue.MapKeys() {
+		for i := 0; i < level; i++ {
+			io.WriteString(writer, "\t")
+		}
+
+		value := mapValue.MapIndex(keyValue)
+
+		fmt.Fprintf(writer, "%s\t%s\n", keyValue.String(), value.String())
 	}
 }
