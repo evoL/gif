@@ -1,4 +1,8 @@
 # gif
 A stupid GIF Manager
 
-Copyright © 2005 Rafał Hirsz.
+```
+go get github.com/evoL/gif
+```
+
+Copyright © 2015 Rafał Hirsz.
