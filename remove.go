@@ -109,12 +109,12 @@ func removeMultiple(s *store.Store, images []image.Image) {
 	fmt.Printf("%v images\n", len(images))
 
 	writer := image.DefaultWriter()
-	defer writer.Flush()
 
 	for i, img := range images {
 		io.WriteString(writer, fmt.Sprintf("%v\t", i+1))
 		img.PrintTo(writer, false)
 	}
+	writer.Flush()
 	fmt.Println()
 
 	fmt.Println("Select images you want to remove: (Enter comma-separated numbers)")
