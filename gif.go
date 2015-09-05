@@ -154,12 +154,6 @@ func main() {
 			Action: UploadCommand,
 			Flags:  uploadFlags,
 		},
-		{
-			Name:   "path",
-			Usage:  "Lists paths to images",
-			Action: PathCommand,
-			Flags:  getFlags,
-		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
 		err = loadConfig(c.String("config"))
