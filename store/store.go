@@ -28,6 +28,11 @@ type ExportFormat struct {
 	Images  []ExportedImage
 }
 
+type TagInformation struct {
+	Tag   string
+	Count int64
+}
+
 func Default() (*Store, error) {
 	return New(config.Global.StorePath)
 }
@@ -205,6 +210,36 @@ func (store *Store) List(filter Filter) (result []Image, err error) {
 	// the last image separately.
 	if img.Id != "" {
 		result = append(result, img)
+	}
+
+	err = rows.Err()
+	return
+}
+
+func (store *Store) ListTags(filter Filter) (result []TagInformation, err error) {
+	result = make([]TagInformation, 0)
+
+	queryString := fmt.Sprintf(`
+		SELECT tag, COUNT(*)
+		FROM image_tags
+		WHERE %s
+		GROUP BY tag
+		ORDER BY tag ASC`, filter.Condition())
+
+	rows, err := store.db.Query(queryString, filter.Values()...)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	tagInfo := TagInformation{}
+	for rows.Next() {
+		err = rows.Scan(&tagInfo.Tag, &tagInfo.Count)
+		if err != nil {
+			return
+		}
+
+		result = append(result, tagInfo)
 	}
 
 	err = rows.Err()

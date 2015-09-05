@@ -85,6 +85,19 @@ func (f TagFilter) Values() valueSlice {
 
 ///////////////////////////////////////////////////////////
 
+type TagPrefixFilter struct {
+	Prefix string
+}
+
+func (f TagPrefixFilter) Condition() string {
+	return "tag LIKE ? || '%'"
+}
+func (f TagPrefixFilter) Values() valueSlice {
+	return valueSlice{f.Prefix}
+}
+
+///////////////////////////////////////////////////////////
+
 type UntaggedFilter struct{}
 
 func (f UntaggedFilter) Condition() string {

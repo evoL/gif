@@ -149,6 +149,11 @@ func main() {
 			Action: UploadCommand,
 			Flags:  uploadFlags,
 		},
+		{
+			Name:   "tags",
+			Usage:  "Lists tags available in the database along with their image count",
+			Action: TagsCommand,
+		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
 		err = loadConfig(c.String("config"))
