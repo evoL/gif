@@ -200,7 +200,7 @@ func typeFilter(c *cli.Context) (filter store.Filter) {
 		arg := strings.Join(c.Args(), " ")
 
 		if !c.Bool("tag") && regexp.MustCompile("^[0-9a-f]+$").MatchString(arg) {
-			filter = store.IdFilter{Id: arg}
+			filter = store.IdOrTagFilter{Id: arg}
 		} else {
 			filter = store.TagFilter{Tag: arg}
 		}

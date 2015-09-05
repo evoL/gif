@@ -31,15 +31,15 @@ func (f NullFilter) Values() valueSlice {
 
 ///////////////////////////////////////////////////////////
 
-type IdFilter struct {
+type IdOrTagFilter struct {
 	Id string
 }
 
-func (f IdFilter) Condition() string {
-	return "id LIKE ? || '%'"
+func (f IdOrTagFilter) Condition() string {
+	return "id LIKE ? || '%' OR tag = ?"
 }
-func (f IdFilter) Values() valueSlice {
-	return valueSlice{f.Id}
+func (f IdOrTagFilter) Values() valueSlice {
+	return valueSlice{f.Id, f.Id}
 }
 
 ///////////////////////////////////////////////////////////
