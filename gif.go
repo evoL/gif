@@ -101,22 +101,22 @@ func main() {
 			Action: ConfigCommand,
 		},
 		{
-			Name:   "tag",
-			Usage:  "Enables to change tags for images",
-			Action: TagCommand,
-			Flags:  typeFlags,
+			Name:   "export",
+			Usage:  "Exports the database",
+			Action: ExportCommand,
+			Flags:  exportFlags,
+		},
+		{
+			Name:   "import",
+			Usage:  "Imports multiple images into the database",
+			Action: ImportCommand,
+			Flags:  importFlags,
 		},
 		{
 			Name:   "list",
 			Usage:  "Lists stored images",
 			Action: ListCommand,
 			Flags:  typeFlags,
-		},
-		{
-			Name:   "url",
-			Usage:  "Lists URLs of images",
-			Action: UrlCommand,
-			Flags:  getFlags,
 		},
 		{
 			Name:   "path",
@@ -132,16 +132,21 @@ func main() {
 			Flags:   removeFlags,
 		},
 		{
-			Name:   "export",
-			Usage:  "Exports the database",
-			Action: ExportCommand,
-			Flags:  exportFlags,
+			Name:   "tag",
+			Usage:  "Enables to change tags for images",
+			Action: TagCommand,
+			Flags:  typeFlags,
 		},
 		{
-			Name:   "import",
-			Usage:  "Imports multiple images into the database",
-			Action: ImportCommand,
-			Flags:  importFlags,
+			Name:   "tags",
+			Usage:  "Lists tags available in the database along with their image count",
+			Action: TagsCommand,
+		},
+		{
+			Name:   "url",
+			Usage:  "Lists URLs of images",
+			Action: UrlCommand,
+			Flags:  getFlags,
 		},
 		{
 			Name:   "upload",
@@ -150,9 +155,10 @@ func main() {
 			Flags:  uploadFlags,
 		},
 		{
-			Name:   "tags",
-			Usage:  "Lists tags available in the database along with their image count",
-			Action: TagsCommand,
+			Name:   "path",
+			Usage:  "Lists paths to images",
+			Action: PathCommand,
+			Flags:  getFlags,
 		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
