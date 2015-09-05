@@ -25,7 +25,7 @@ func main() {
 		},
 		cli.BoolFlag{
 			Name:  "local",
-			Usage: "Lists only images that are local, that is not avaliable remotely.",
+			Usage: "Lists only images that are local, that is not available remotely.",
 		},
 	}
 	getFlags := append(
