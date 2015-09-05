@@ -1,7 +1,7 @@
 # gif
 [![Build Status](https://travis-ci.org/evoL/gif.svg?branch=master)](https://travis-ci.org/evoL/gif)
 
-An command-line image library manager for nerds.
+A command-line image library manager for nerds.
 
 Its main use case is to manage a library with tags and URLs for fast sharing. Written in [Go](http://golang.org/).
 
@@ -26,13 +26,13 @@ Every stable release is available for download on [GitHub](https://github.com/ev
 - OS X (Darwin) 32-bit / 64-bit
 - Windows 64-bit
 
-To install, [download the latest release](https://github.com/evoL/gif/releases) for your system and put somewhere in your PATH.
+To install, [download the latest release](https://github.com/evoL/gif/releases) for your system and put it somewhere in your PATH.
 
 ## Usage
 
 `gif` is composed of multiple commands, similar to `git`. If you run it without passing any commands, a help message is displayed.
 
-You can prepend the command with the `--config`/`-c` option to specify a configuration file. By default `$HOME/.gifconfig` is used. Read more about configuration at the [`config` section](#config).
+You can prepend the command with the `--config`/`-c` option to specify a configuration file. By default `$HOME/.gifconfig` is used. Read more about configuration in the [`config` section](#config).
 
 ### `add`
 **Adds an image.**
@@ -154,6 +154,12 @@ Here's a minimal configuration file that sets up uploading:
 
 ## Examples
 
+### Add a reaction GIF to the database
+
+```
+gif add http://www.reactiongifs.com/wp-content/uploads/2012/11/excited.gif
+```
+
 ### Copy a random facepalm image URL to clipboard on OS X
 
 ```
@@ -164,6 +170,26 @@ gif url facepalm | pbcopy
 
 ```
 gif path --all | xargs qlmanage -p
+```
+
+### Backup your database to a bundle
+
+```
+gif export --bundle -o gif-backup.tar.gz
+# or just
+gif export -o gif-backup.tar.gz
+```
+
+### Import the database from a backup
+
+```
+gif import gif-backup.tar.gz
+```
+
+### Import a directory
+
+```
+gif import path/to/directory
 ```
 
 ## Footnote
