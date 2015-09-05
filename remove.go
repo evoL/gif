@@ -122,7 +122,7 @@ func removeMultiple(s *store.Store, images []image.Image) {
 
 	scanner := bufio.NewScanner(os.Stdin)
 	if !scanner.Scan() {
-		fmt.Println("IO Error: " + scanner.Err().Error())
+		fmt.Println()
 		os.Exit(1)
 	}
 
