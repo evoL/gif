@@ -37,7 +37,7 @@ func UploadCommand(c *cli.Context) {
 	defer writer.Flush()
 
 	for _, img := range images {
-		img.PrintTo(writer)
+		img.PrintTo(writer, false)
 	}
 	fmt.Println()
 

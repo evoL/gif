@@ -32,7 +32,7 @@ func AddCommand(c *cli.Context) {
 		img, _ = s.Find(store.UrlFilter{Url: location})
 		if img != nil {
 			io.WriteString(writer, "[exists]\t")
-			img.PrintTo(writer)
+			img.PrintTo(writer, false)
 			return
 		}
 
@@ -68,7 +68,7 @@ func AddInterface(s *store.Store, writer image.FlushableWriter, img *image.Image
 		} else {
 			io.WriteString(writer, "[exists]\t")
 		}
-		hit.PrintTo(writer)
+		hit.PrintTo(writer, true)
 		return
 	}
 
@@ -87,7 +87,7 @@ func AddInterface(s *store.Store, writer image.FlushableWriter, img *image.Image
 	}
 
 	io.WriteString(writer, "[added]\t")
-	img.PrintTo(writer)
+	img.PrintTo(writer, true)
 
 	return
 }

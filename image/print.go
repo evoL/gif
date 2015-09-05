@@ -26,7 +26,7 @@ func (img *Image) Print() {
 	writer := DefaultWriter()
 	defer writer.Flush()
 
-	img.PrintTo(writer)
+	img.PrintTo(writer, false)
 }
 
 func PrintAll(images []Image) {
@@ -38,11 +38,11 @@ func PrintAll(images []Image) {
 
 func PrintAllTo(images []Image, writer io.Writer) {
 	for _, img := range images {
-		img.PrintTo(writer)
+		img.PrintTo(writer, false)
 	}
 }
 
-func (img *Image) PrintTo(writer io.Writer) {
+func (img *Image) PrintTo(writer io.Writer, flush bool) {
 	fmt.Fprintf(writer, "%s\t", img.Id[:8])
 
 	if img.Url == "" {
@@ -61,5 +61,9 @@ func (img *Image) PrintTo(writer io.Writer) {
 		fmt.Fprint(writer, "(no tags)")
 	}
 
-	io.WriteString(writer, "\f")
+	if flush {
+		io.WriteString(writer, "\f")
+	} else {
+		io.WriteString(writer, "\n")
+	}
 }

@@ -113,7 +113,7 @@ func removeMultiple(s *store.Store, images []image.Image) {
 
 	for i, img := range images {
 		io.WriteString(writer, fmt.Sprintf("%v\t", i+1))
-		img.PrintTo(writer)
+		img.PrintTo(writer, false)
 	}
 	fmt.Println()
 
