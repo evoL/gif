@@ -345,3 +345,16 @@ func (s *Store) Hydrate(img *Image) (err error) {
 	img.Data, err = ioutil.ReadFile(path)
 	return
 }
+
+func (s *Store) Version() (int, error) {
+	var version int64 = 0
+
+	err := s.db.QueryRow("PRAGMA user_version").Scan(&version)
+
+	// If not specified, the version is 1
+	if err == nil && version < 1 {
+		version = 1
+	}
+
+	return int(version), err
+}
