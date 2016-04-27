@@ -1,22 +1,21 @@
 {
 	"ImportPath": "github.com/evoL/gif",
-	"GoVersion": "go1.4.2",
-	"Packages": [
-		"./..."
-	],
+	"GoVersion": "go1.6",
+	"GodepVersion": "v62",
 	"Deps": [
 		{
 			"ImportPath": "github.com/codegangsta/cli",
-			"Comment": "1.2.0-127-gad48024",
-			"Rev": "ad480243a8a6cda30acf7cd999ea3e5142154fde"
+			"Comment": "v1.14.0-7-g4733699",
+			"Rev": "4733699ce30faa633c4db36ebfbe427963593d7d"
 		},
 		{
 			"ImportPath": "github.com/dustin/go-humanize",
-			"Rev": "c128122e0b9b93799aef8181a537e5d8fd7081d6"
+			"Rev": "8929fe90cee4b2cb9deb468b51fb34eba64d1bf0"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
-			"Rev": "542ae647f8601bafd96233961b150cae198e0295"
+			"Comment": "v1.1.0-62-g467f50b",
+			"Rev": "467f50b0c026317ad28fc2c0a08aab6f755cfc7a"
 		}
 	]
 }
