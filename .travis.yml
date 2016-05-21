@@ -1,14 +1,21 @@
 language: go
-go: 1.4.2
+go: 1.6.2
+env: GIMME_OS=linux GIMME_ARCH=amd64
 sudo: required
+dist: trusty
 
-env:
-  - GIF_OS=darwin GIF_ARCH=386
-  - GIF_OS=darwin GIF_ARCH=amd64
-  - GIF_OS=linux GIF_ARCH=386
-  - GIF_OS=linux GIF_ARCH=amd64
-  # - GIF_OS=windows GIF_ARCH=386 GIF_BINARY_SUFFIX=.exe
-  - GIF_OS=windows GIF_ARCH=amd64 GIF_BINARY_SUFFIX=.exe
+matrix:
+  fast_finish: true
+  include:
+    - os: linux
+      env: GIMME_OS=linux GIMME_ARCH=386 CGO_ENABLED=1
+    - os: linux
+      env: GIMME_OS=windows GIMME_ARCH=386 CGO_ENABLED=1 CC_FOR_TARGET=i686-w64-mingw32-gcc
+    - os: linux
+      env: GIMME_OS=windows GIMME_ARCH=amd64 CGO_ENABLED=1 CC_FOR_TARGET=x86_64-w64-mingw32-gcc
+    - os: osx
+      osx_image: xcode7.3
+      env: GIMME_OS=darwin GIMME_ARCH=amd64
 
 addons:
   apt:
@@ -16,25 +23,16 @@ addons:
       # linux/386
       - libc6-dev-i386
       - gcc-multilib
-      # darwin
-      - libxml2-dev
-      - uuid-dev
-      - libssl-dev
       # windows
-      # - gcc-mingw-w64
-      # - mingw-w64
+      - binutils-mingw-w64-i686
+      - gcc-mingw-w64-i686
+      - binutils-mingw-w64-x86-64
+      - gcc-mingw-w64-x86-64
 
-before_install:
-  - sudo apt-get install -y binutils-mingw-w64-i686 binutils-mingw-w64-x86-64 gcc-mingw-w64-i686 gcc-mingw-w64-x86-64 gcc-mingw-w64 mingw-w64
-  - ./setup_darwin.sh
-  - export PATH=/tmp/osxcross/target/bin:$PATH
-  - go get github.com/mitchellh/gox
-
-before_script:
-  - export GIF_VERSION="$(git describe --tags HEAD)"
-  - gox -os=$GIF_OS -arch=$GIF_ARCH -cgo -build-toolchain
-
-script: ./crosscompile.sh
+before_deploy:
+  - export GIF_VERSION=$(git describe --tags HEAD)
+  - mkdir -p build
+  - tar cvzf "build/gif-${GIMME_OS}-${GIMME_ARCH}.tar.gz" $(ls -d gif gif.exe 2>/dev/null)
 
 deploy:
   -
@@ -63,3 +61,8 @@ deploy:
 
 notifications:
   email: false
+
+branches:
+  only:
+    - master
+    - ci
