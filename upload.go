@@ -34,11 +34,11 @@ func UploadCommand(c *cli.Context) {
 	fmt.Printf("%v images\n", len(images))
 
 	writer := image.DefaultWriter()
-	defer writer.Flush()
 
 	for _, img := range images {
 		img.PrintTo(writer, false)
 	}
+	writer.Flush()
 	fmt.Println()
 
 	if c.Bool("really") {

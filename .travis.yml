@@ -1,14 +1,20 @@
 language: go
-go: 1.4.2
-sudo: required
+go: 1.6.2
 
-env:
-  - GIF_OS=darwin GIF_ARCH=386
-  - GIF_OS=darwin GIF_ARCH=amd64
-  - GIF_OS=linux GIF_ARCH=386
-  - GIF_OS=linux GIF_ARCH=amd64
-  # - GIF_OS=windows GIF_ARCH=386 GIF_BINARY_SUFFIX=.exe
-  - GIF_OS=windows GIF_ARCH=amd64 GIF_BINARY_SUFFIX=.exe
+matrix:
+  fast_finish: true
+  include:
+    - os: linux
+      env: GOOS=linux GOARCH=386 CGO_ENABLED=1
+    - os: linux
+      env: GOOS=linux GOARCH=amd64
+    - os: linux
+      env: GOOS=windows GOARCH=386 CGO_ENABLED=1 CC=i686-w64-mingw32-gcc
+    - os: linux
+      env: GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc
+    - os: osx
+      osx_image: xcode7.3
+      env: GOOS=darwin GOARCH=amd64
 
 addons:
   apt:
@@ -16,25 +22,14 @@ addons:
       # linux/386
       - libc6-dev-i386
       - gcc-multilib
-      # darwin
-      - libxml2-dev
-      - uuid-dev
-      - libssl-dev
       # windows
-      # - gcc-mingw-w64
-      # - mingw-w64
+      - gcc-mingw-w64-i686
+      - gcc-mingw-w64-x86-64
 
-before_install:
-  - sudo apt-get install -y binutils-mingw-w64-i686 binutils-mingw-w64-x86-64 gcc-mingw-w64-i686 gcc-mingw-w64-x86-64 gcc-mingw-w64 mingw-w64
-  - ./setup_darwin.sh
-  - export PATH=/tmp/osxcross/target/bin:$PATH
-  - go get github.com/mitchellh/gox
-
-before_script:
-  - export GIF_VERSION="$(git describe --tags HEAD)"
-  - gox -os=$GIF_OS -arch=$GIF_ARCH -cgo -build-toolchain
-
-script: ./crosscompile.sh
+before_deploy:
+  - export GIF_VERSION=$(git describe --tags HEAD)
+  - mkdir -p build
+  - tar cvzf "build/gif-${GOOS}-${GOARCH}.tar.gz" $(ls -d gif gif.exe 2>/dev/null)
 
 deploy:
   -
