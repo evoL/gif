@@ -18,9 +18,10 @@ type Store struct {
 }
 
 type ExportedImage struct {
-	Id   string
-	Url  string
-	Tags []string
+	Id      string
+	Url     string
+	Tags    []string
+	AddedAt string
 }
 
 type ExportFormat struct {
@@ -75,18 +76,23 @@ func (store *Store) Add(image *Image) error {
 	}
 	defer stmt.Close()
 
-	now := time.Now()
+	var addedAt time.Time
+	if image.AddedAt == nil {
+		addedAt = time.Now()
+	} else {
+		addedAt = *image.AddedAt
+	}
 
 	if image.Url == "" {
-		_, err = stmt.Exec(image.Id, sql.NullString{}, now)
+		_, err = stmt.Exec(image.Id, sql.NullString{}, addedAt)
 	} else {
-		_, err = stmt.Exec(image.Id, image.Url, now)
+		_, err = stmt.Exec(image.Id, image.Url, addedAt)
 	}
 	if err != nil {
 		return err
 	}
 
-	image.AddedAt = &now
+	image.AddedAt = &addedAt
 
 	return tx.Commit()
 }

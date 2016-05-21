@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var extensionWhitelist = [...]string{"gif", "jpeg", "jpg", "png", "webp"}
@@ -212,8 +213,19 @@ func importBundle(s *store.Store, reader *gzip.Reader) error {
 					fmt.Fprintf(writer, "[warn]\t%s\tID mismatch, new ID: %s\f", queuedImageId[:8], img.Id)
 				}
 
-				img.Url = imageMap[queuedImageId].Url
-				img.Tags = imageMap[queuedImageId].Tags
+				queuedImage := imageMap[queuedImageId]
+				img.Url = queuedImage.Url
+				img.Tags = queuedImage.Tags
+
+				var addedAt time.Time
+				if queuedImage.AddedAt != "" {
+					addedAt, err = time.Parse(time.RFC3339, queuedImage.AddedAt)
+					if err != nil {
+						fmt.Fprintf(writer, "[error]\t%s\t%s\f", queuedImageId[:8], err.Error())
+						continue
+					}
+					img.AddedAt = &addedAt
+				}
 
 				AddInterface(s, writer, img, false)
 			}
@@ -296,6 +308,15 @@ func importUrls(s *store.Store, images []store.ExportedImage) {
 		}
 
 		img.Tags = exported.Tags
+
+		if exported.AddedAt != "" {
+			addedAt, err := time.Parse(time.RFC3339, exported.AddedAt)
+			if err != nil {
+				fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
+				continue
+			}
+			img.AddedAt = &addedAt
+		}
 
 		AddInterface(s, writer, img, false)
 	}

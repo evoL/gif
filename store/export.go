@@ -100,6 +100,7 @@ func prepareImages(images []image.Image) (exportedImages []ExportedImage) {
 		exportedImages[i].Id = img.Id
 		exportedImages[i].Url = img.Url
 		exportedImages[i].Tags = img.Tags
+		exportedImages[i].AddedAt = img.AddedAt.Format(time.RFC3339)
 	}
 
 	return
