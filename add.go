@@ -72,6 +72,11 @@ func AddInterface(s *store.Store, writer image.FlushableWriter, img *image.Image
 		return
 	}
 
+	if err = s.WriteImage(img); err != nil {
+		fmt.Println("Cannot save image: " + err.Error())
+		os.Exit(1)
+	}
+
 	if err = s.Add(img); err != nil {
 		fmt.Println("Cannot save image: " + err.Error())
 		os.Exit(1)

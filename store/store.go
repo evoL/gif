@@ -62,10 +62,6 @@ func New(path string) (*Store, error) {
 }
 
 func (store *Store) Add(image *Image) error {
-	if err := ioutil.WriteFile(store.PathFor(image), image.Data, 0644); err != nil {
-		return err
-	}
-
 	tx, err := store.db.Begin()
 	if err != nil {
 		return err
@@ -103,6 +99,10 @@ func (store *Store) Close() error {
 
 func (store *Store) PathFor(image *Image) string {
 	return path.Join(store.path, image.Id+".gif")
+}
+
+func (s *Store) WriteImage(img *Image) error {
+	return ioutil.WriteFile(s.PathFor(img), img.Data, 0644)
 }
 
 func (store *Store) Contains(image *Image) bool {
