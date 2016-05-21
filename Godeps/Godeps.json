@@ -14,8 +14,8 @@
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
-			"Comment": "v1.1.0-62-g467f50b",
-			"Rev": "467f50b0c026317ad28fc2c0a08aab6f755cfc7a"
+			"Comment": "v1.1.0-69-g38ee283",
+			"Rev": "38ee283dabf11c9cbdb968eebd79b1fa7acbabe6"
 		}
 	]
 }
