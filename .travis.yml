@@ -32,7 +32,8 @@ addons:
 before_deploy:
   - export GIF_VERSION=$(git describe --tags HEAD)
   - mkdir -p build
-  - tar cvzf "build/gif-${GIMME_OS}-${GIMME_ARCH}.tar.gz" $(ls -d gif gif.exe 2>/dev/null)
+  - (test -f gif && tar cvzf "build/gif-${GIMME_OS}-${GIMME_ARCH}.tar.gz" gif) || true
+  - (test -f gif.exe && zip -9 "build/gif-${GIMME_OS}-${GIMME_ARCH}.zip" gif.exe) || true
 
 deploy:
   -
@@ -56,6 +57,7 @@ deploy:
     skip_cleanup: true
     cache_control: 'max-age=31556926'
     acl: public_read
+    region: eu-west-1
     on:
       repo: evoL/gif
 
