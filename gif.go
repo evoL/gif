@@ -75,6 +75,16 @@ func main() {
 			Usage: "Doesn't ask for confirmation.",
 		},
 	)
+	recreateFlags := []cli.Flag{
+		cli.BoolFlag{
+			Name:  "really",
+			Usage: "Doesn't ask for confirmation.",
+		},
+		cli.BoolFlag{
+			Name:  "verbose, v",
+			Usage: "Writes more information to the output.",
+		},
+	}
 
 	app := cli.NewApp()
 	app.Name = "gif"
@@ -153,6 +163,12 @@ func main() {
 			Usage:  "Uploads images to a server and saves the URLs for later use",
 			Action: UploadCommand,
 			Flags:  uploadFlags,
+		},
+		{
+			Name:   "recreate",
+			Usage:  "Recreates the database from scratch",
+			Action: RecreateCommand,
+			Flags:  recreateFlags,
 		},
 	}
 	app.Before = func(c *cli.Context) (err error) {
@@ -274,4 +290,17 @@ func parseLocation(location string) (locationType, error) {
 	}
 
 	return invalidLocation, errors.New("Invalid location")
+}
+
+func tempCommand(c *cli.Context) {
+	s := getStore()
+	defer s.Close()
+
+	version, err := s.Version()
+	if err != nil {
+		fmt.Println("Error while fetching store version: " + err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Println("Version", version)
 }

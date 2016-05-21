@@ -1,5 +1,8 @@
 package db
 
+// Replace this with a proper database abstraction when the database needs
+// to be, well, abstracted away.
+
 import (
 	"database/sql"
 	"github.com/evoL/gif/config"
@@ -8,51 +11,21 @@ import (
 	"path"
 )
 
-func New(driver, dataSource string) (*sql.DB, error) {
-	var needsInit bool
+func New(driver, dataSource string) (db *sql.DB, needsInit bool, err error) {
 	if driver == "sqlite3" {
 		os.MkdirAll(path.Dir(dataSource), 0755)
 
-		_, err := os.Stat(dataSource)
+		_, err = os.Stat(dataSource)
 		needsInit = err != nil && os.IsNotExist(err)
 	}
 
-	db, err := sql.Open(driver, dataSource)
-	if err != nil {
-		return nil, err
-	}
-
-	if needsInit {
-		if err = Setup(db); err != nil {
-			return db, err
-		}
-	}
-	return db, nil
+	db, err = sql.Open(driver, dataSource)
+	return
 }
 
-func Default() (*sql.DB, error) {
+func Default() (*sql.DB, bool, error) {
 	driver := config.Global.Db.Driver
 	dataSource := config.Global.Db.DataSource
 
 	return New(driver, dataSource)
-}
-
-func Setup(db *sql.DB) error {
-	schema := `
-	CREATE TABLE images (
-	  id VARCHAR(40) PRIMARY KEY,
-	  url TEXT,
-	  added_at DATETIME NOT NULL
-	);
-
-	CREATE TABLE image_tags (
-	  image_id VARCHAR(40) NOT NULL,
-	  tag VARCHAR(255) NOT NULL
-	);
-
-	CREATE INDEX image_tags_index ON image_tags (tag);
-	CREATE UNIQUE INDEX image_tags_unique ON image_tags (image_id, tag);`
-
-	_, err := db.Exec(schema)
-	return err
 }

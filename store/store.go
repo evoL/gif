@@ -38,7 +38,7 @@ func Default() (*Store, error) {
 }
 
 func New(path string) (*Store, error) {
-	defaultDb, err := db.Default()
+	defaultDb, needsInit, err := db.Default()
 	if err != nil {
 		return nil, err
 	}
@@ -46,6 +46,12 @@ func New(path string) (*Store, error) {
 	store := &Store{
 		path: path,
 		db:   defaultDb,
+	}
+
+	if needsInit {
+		if err = store.Initialize(); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := os.MkdirAll(path, 0755); err != nil {
@@ -357,4 +363,37 @@ func (s *Store) Version() (int, error) {
 	}
 
 	return int(version), err
+}
+
+func (s *Store) Initialize() (err error) {
+	schema := `
+	PRAGMA user_version = 1;
+
+	CREATE TABLE images (
+	  id VARCHAR(40) PRIMARY KEY,
+	  url TEXT,
+	  added_at DATETIME NOT NULL
+	);
+
+	CREATE TABLE image_tags (
+	  image_id VARCHAR(40) NOT NULL,
+	  tag VARCHAR(255) NOT NULL
+	);
+
+	CREATE INDEX image_tags_index ON image_tags (tag);
+	CREATE UNIQUE INDEX image_tags_unique ON image_tags (image_id, tag);`
+
+	_, err = s.db.Exec(schema)
+	return
+}
+
+func (s *Store) Implode() (err error) {
+	query := `
+	PRAGMA writable_schema = 1;
+	DELETE FROM sqlite_master WHERE type in ('table', 'index', 'trigger');
+	PRAGMA writable_schema = 0;
+	VACUUM;`
+
+	_, err = s.db.Exec(query)
+	return
 }
