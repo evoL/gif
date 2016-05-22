@@ -16,15 +16,15 @@ If you have [Go](http://golang.org/) installed, you can use `go get` to install 
 go get github.com/evoL/gif
 ```
 
-The code was tested on Go 1.4.2.
+The code is being developed on Go 1.6.2.
 
 ### Binaries
 
 Every stable release is available for download on [GitHub](https://github.com/evoL/gif/releases). Builds are prepared for following systems:
 
 - Linux i386 / amd64
-- OS X (Darwin) 32-bit / 64-bit
-- Windows 64-bit
+- OS X (Darwin) 64-bit
+- Windows 32-bit / 64-bit
 
 To install, [download the latest release](https://github.com/evoL/gif/releases) for your system and put it somewhere in your PATH.
 
@@ -198,4 +198,4 @@ Contributions are welcome! If you have something to add or you found a bug, file
 
 License: [MIT](https://github.com/evoL/gif/blob/master/LICENSE)
 
-Copyright © 2015 Rafał Hirsz.
+Copyright © 2015–2016 Rafał Hirsz.
