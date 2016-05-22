@@ -50,7 +50,7 @@ func New(path string) (*Store, error) {
 	}
 
 	if needsInit {
-		if err = store.Initialize(); err != nil {
+		if err = store.Migrate(DefaultMigrationSource()); err != nil {
 			return nil, err
 		}
 	}
@@ -355,51 +355,5 @@ func (s *Store) RemoveAll(images []Image) (err error) {
 func (s *Store) Hydrate(img *Image) (err error) {
 	path := s.PathFor(img)
 	img.Data, err = ioutil.ReadFile(path)
-	return
-}
-
-func (s *Store) Version() (int, error) {
-	var version int64 = 0
-
-	err := s.db.QueryRow("PRAGMA user_version").Scan(&version)
-
-	// If not specified, the version is 1
-	if err == nil && version < 1 {
-		version = 1
-	}
-
-	return int(version), err
-}
-
-func (s *Store) Initialize() (err error) {
-	schema := `
-	PRAGMA user_version = 1;
-
-	CREATE TABLE images (
-	  id VARCHAR(40) PRIMARY KEY,
-	  url TEXT,
-	  added_at DATETIME NOT NULL
-	);
-
-	CREATE TABLE image_tags (
-	  image_id VARCHAR(40) NOT NULL,
-	  tag VARCHAR(255) NOT NULL
-	);
-
-	CREATE INDEX image_tags_index ON image_tags (tag);
-	CREATE UNIQUE INDEX image_tags_unique ON image_tags (image_id, tag);`
-
-	_, err = s.db.Exec(schema)
-	return
-}
-
-func (s *Store) Implode() (err error) {
-	query := `
-	PRAGMA writable_schema = 1;
-	DELETE FROM sqlite_master WHERE type in ('table', 'index', 'trigger');
-	PRAGMA writable_schema = 0;
-	VACUUM;`
-
-	_, err = s.db.Exec(query)
 	return
 }

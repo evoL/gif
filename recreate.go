@@ -80,7 +80,7 @@ func recreateStore(verbose bool) {
 		fmt.Println("Recreating the schema…")
 	}
 
-	if err = s.Initialize(); err != nil {
+	if err = s.Migrate(store.DefaultMigrationSource()); err != nil {
 		fmt.Printf("Error when trying to initialize the schema: %v\nBackup is available at %v\n", err.Error(), backupFile.Name())
 		os.Exit(1)
 	}
@@ -89,5 +89,20 @@ func recreateStore(verbose bool) {
 
 	if verbose {
 		fmt.Println("Importing the files…")
+	}
+
+	backupFile.Seek(0, 0)
+	reader := bufio.NewReader(backupFile)
+	if err = importFromReader(s, reader, true); err != nil {
+		fmt.Printf("Error when importing the files: %v\nBackup is available at %v\n", err.Error(), backupFile.Name())
+		os.Exit(1)
+	}
+
+	// Step 5: Remove backup
+
+	backupFile.Close()
+	if err = os.Remove(backupFile.Name()); err != nil {
+		fmt.Printf("Error when removing the backup: %v\n", err.Error())
+		os.Exit(1)
 	}
 }

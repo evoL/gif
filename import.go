@@ -68,7 +68,7 @@ func importFromUrl(s *store.Store, location string) {
 
 	defer response.Body.Close()
 
-	err = importFromReader(s, response.Body)
+	err = importFromReader(s, response.Body, false)
 	if err != nil {
 		fmt.Println("Import Error: " + err.Error())
 		os.Exit(1)
@@ -83,7 +83,7 @@ func importFromFile(s *store.Store, location string) {
 	}
 	defer file.Close()
 
-	if err = importFromReader(s, file); err != nil {
+	if err = importFromReader(s, file, false); err != nil {
 		fmt.Println("Import Error: " + err.Error())
 		os.Exit(1)
 	}
@@ -133,7 +133,7 @@ func importDirectory(s *store.Store, location string, recursive bool) {
 	}
 }
 
-func importFromReader(s *store.Store, reader io.Reader) error {
+func importFromReader(s *store.Store, reader io.Reader, metadataOnly bool) error {
 	bufferedReader := bufio.NewReader(reader)
 
 	// The gzip header has 10 bytes, so let's peek the next 10 bytes and check if the header is OK
@@ -154,7 +154,7 @@ func importFromReader(s *store.Store, reader io.Reader) error {
 	jsonDecoder := json.NewDecoder(bufferedReader)
 	err = jsonDecoder.Decode(&input)
 	if err == nil {
-		importUrls(s, input.Images)
+		importUrls(s, input.Images, metadataOnly)
 		return nil
 	}
 
@@ -290,21 +290,28 @@ func importBundle(s *store.Store, reader *gzip.Reader) error {
 	return nil
 }
 
-func importUrls(s *store.Store, images []store.ExportedImage) {
+func importUrls(s *store.Store, images []store.ExportedImage, metadataOnly bool) {
 	writer := image.DefaultWriter()
 	defer writer.Flush()
 
 	for _, exported := range images {
-		// TODO: check if ID exists
+		var img *image.Image
+		if metadataOnly {
+			img = &image.Image{
+				Id:  exported.Id,
+				Url: exported.Url,
+			}
+		} else {
+			var err error
+			img, err = image.FromUrl(exported.Url)
+			if err != nil {
+				fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
+				continue
+			}
 
-		img, err := image.FromUrl(exported.Url)
-		if err != nil {
-			fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
-			continue
-		}
-
-		if exported.Id != img.Id {
-			fmt.Fprintf(writer, "[warn]\t%s\tID mismatch, new ID: %s\f", exported.Id[:8], img.Id)
+			if exported.Id != img.Id {
+				fmt.Fprintf(writer, "[warn]\t%s\tID mismatch, new ID: %s\f", exported.Id[:8], img.Id)
+			}
 		}
 
 		img.Tags = exported.Tags
@@ -315,9 +322,22 @@ func importUrls(s *store.Store, images []store.ExportedImage) {
 				fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
 				continue
 			}
+
 			img.AddedAt = &addedAt
 		}
 
-		AddInterface(s, writer, img, false)
+		if metadataOnly {
+			if err := s.Add(img); err != nil {
+				fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
+				continue
+			}
+
+			if err := s.UpdateTags(img, exported.Tags); err != nil {
+				fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
+				continue
+			}
+		} else {
+			AddInterface(s, writer, img, false)
+		}
 	}
 }
