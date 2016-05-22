@@ -80,10 +80,6 @@ func main() {
 			Name:  "really",
 			Usage: "Doesn't ask for confirmation.",
 		},
-		cli.BoolFlag{
-			Name:  "verbose, v",
-			Usage: "Writes more information to the output.",
-		},
 	}
 
 	app := cli.NewApp()

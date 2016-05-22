@@ -22,6 +22,14 @@ func (i *Image) IsHydrated() bool {
 	return len(i.Data) > 0
 }
 
+func (i *Image) SetAddedAtFromString(addedAt string) (err error) {
+	value, err := time.Parse(time.RFC3339, addedAt)
+	if err != nil {
+		i.AddedAt = &value
+	}
+	return
+}
+
 func FromUrl(url string) (*Image, error) {
 	response, err := http.Get(url)
 	if err != nil {

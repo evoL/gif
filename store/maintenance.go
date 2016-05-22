@@ -1,9 +1,13 @@
 package store
 
 import (
+	"bufio"
 	"github.com/evoL/gif/config"
 	"github.com/evoL/gif/store/migrations"
 	"github.com/rubenv/sql-migrate"
+	"io/ioutil"
+	"os"
+	"strings"
 )
 
 func DefaultMigrationSource() migrate.MigrationSource {
@@ -13,6 +17,33 @@ func DefaultMigrationSource() migrate.MigrationSource {
 		AssetDir: migrations.AssetDir,
 		Dir:      "db_migrations",
 	}
+}
+
+func (s *Store) plannedMigrations(migrations migrate.MigrationSource) (planned []*migrate.PlannedMigration, err error) {
+	planned, _, err = migrate.PlanMigration(s.db, config.Global.Db.Driver, migrations, migrate.Up, 0)
+	return
+}
+
+func (s *Store) Prepare(migrationSource migrate.MigrationSource) (err error) {
+	migrate, err := s.ShouldMigrate(migrationSource)
+	if err != nil || !migrate {
+		return
+	}
+
+	recreate, err := s.ShouldRecreate(migrationSource)
+	if err != nil {
+		return
+	}
+
+	if recreate {
+		if err = s.Recreate(migrationSource); err != nil {
+			return
+		}
+	} else if err = s.Migrate(migrationSource); err != nil {
+		return
+	}
+
+	return
 }
 
 func (s *Store) Migrate(migrationSource migrate.MigrationSource) (err error) {
@@ -74,7 +105,53 @@ func (s *Store) Implode() (err error) {
 	return
 }
 
-func (s *Store) plannedMigrations(migrations migrate.MigrationSource) (planned []*migrate.PlannedMigration, err error) {
-	planned, _, err = migrate.PlanMigration(s.db, config.Global.Db.Driver, migrations, migrate.Up, 0)
-	return
+func (s *Store) Recreate(migrations migrate.MigrationSource) error {
+	emptyStore := false
+
+	// Create backup
+	backupFile, err := ioutil.TempFile("", "gif-backup")
+	if err != nil {
+		return err
+	}
+
+	// Export backup
+	writer := bufio.NewWriter(backupFile)
+	if err = s.Export(writer, NullFilter{}, false); err != nil {
+		if strings.HasPrefix(err.Error(), "no such table") {
+			emptyStore = true
+		} else {
+			return err
+		}
+	}
+	writer.Flush()
+
+	// Drop schema
+	if err = s.Implode(); err != nil {
+		return err
+	}
+
+	// Migrate
+	if err = s.Migrate(migrations); err != nil {
+		return err
+	}
+
+	// Import
+	if !emptyStore {
+		backupFile.Seek(0, 0)
+		reader := bufio.NewReader(backupFile)
+		images, err := ParseMetadata(reader)
+		if err != nil {
+			return err
+		}
+
+		if err = s.ImportMetadata(images); err != nil {
+			return err
+		}
+	}
+
+	// Cleanup
+	backupFile.Close()
+	_ = os.Remove(backupFile.Name())
+
+	return nil
 }

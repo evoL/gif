@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/evoL/gif/store"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -13,10 +12,9 @@ import (
 
 func RecreateCommand(c *cli.Context) {
 	really := c.Bool("really")
-	verbose := c.Bool("verbose")
 
 	if really {
-		recreateStore(verbose)
+		recreateStore()
 	} else {
 		fmt.Print("Do you really want to recreate the database? [y/n] ")
 
@@ -28,81 +26,18 @@ func RecreateCommand(c *cli.Context) {
 
 		response := strings.TrimSpace(scanner.Text())
 		if regexp.MustCompile(`\A[yY]\z`).MatchString(response) {
-			recreateStore(verbose)
+			recreateStore()
 		}
 	}
 }
 
-func recreateStore(verbose bool) {
+func recreateStore() {
 	s := getStore()
 	defer s.Close()
 
-	// Step 1: Make a backup
-
-	if verbose {
-		fmt.Println("Exporting backup…")
-	}
-
-	backupFile, err := ioutil.TempFile("", "gif-backup")
-	if err != nil {
-		fmt.Println("Could not create file: " + err.Error())
-		os.Exit(1)
-	}
-
-	writer := bufio.NewWriter(backupFile)
-
-	err = s.Export(writer, store.NullFilter{}, false)
-	if err != nil {
-		fmt.Println("Export error: " + err.Error())
-		os.Exit(1)
-	}
-
-	writer.Flush()
-
-	if verbose {
-		fmt.Println("Backup written to " + backupFile.Name())
-	}
-
-	// Step 2: Drop the schema
-
-	if verbose {
-		fmt.Println("Dropping the schema…")
-	}
-
-	if err = s.Implode(); err != nil {
-		fmt.Printf("Error when trying to drop the schema: %v\nBackup is available at %v\n", err.Error(), backupFile.Name())
-		os.Exit(1)
-	}
-
-	// Step 3: Create the schema anew
-
-	if verbose {
-		fmt.Println("Recreating the schema…")
-	}
-
-	if err = s.Migrate(store.DefaultMigrationSource()); err != nil {
-		fmt.Printf("Error when trying to initialize the schema: %v\nBackup is available at %v\n", err.Error(), backupFile.Name())
-		os.Exit(1)
-	}
-
-	// Step 4: Import!
-
-	if verbose {
-		fmt.Println("Importing the files…")
-	}
-
-	backupFile.Seek(0, 0)
-	reader := bufio.NewReader(backupFile)
-	if err = importFromReader(s, reader, true); err != nil {
-		fmt.Printf("Error when importing the files: %v\nBackup is available at %v\n", err.Error(), backupFile.Name())
-		os.Exit(1)
-	}
-
-	// Step 5: Remove backup
-
-	backupFile.Close()
-	if err = os.Remove(backupFile.Name()); err != nil {
-		fmt.Printf("Error when removing the backup: %v\n", err.Error())
+	migrations := store.DefaultMigrationSource()
+	if err := s.Recreate(migrations); err != nil {
+		fmt.Println("Error while trying to recreate store: " + err.Error())
 		os.Exit(1)
 	}
 }

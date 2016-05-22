@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
@@ -19,7 +18,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
 )
 
 var extensionWhitelist = [...]string{"gif", "jpeg", "jpg", "png", "webp"}
@@ -68,7 +66,7 @@ func importFromUrl(s *store.Store, location string) {
 
 	defer response.Body.Close()
 
-	err = importFromReader(s, response.Body, false)
+	err = importFromReader(s, response.Body)
 	if err != nil {
 		fmt.Println("Import Error: " + err.Error())
 		os.Exit(1)
@@ -83,7 +81,7 @@ func importFromFile(s *store.Store, location string) {
 	}
 	defer file.Close()
 
-	if err = importFromReader(s, file, false); err != nil {
+	if err = importFromReader(s, file); err != nil {
 		fmt.Println("Import Error: " + err.Error())
 		os.Exit(1)
 	}
@@ -133,7 +131,7 @@ func importDirectory(s *store.Store, location string, recursive bool) {
 	}
 }
 
-func importFromReader(s *store.Store, reader io.Reader, metadataOnly bool) error {
+func importFromReader(s *store.Store, reader io.Reader) error {
 	bufferedReader := bufio.NewReader(reader)
 
 	// The gzip header has 10 bytes, so let's peek the next 10 bytes and check if the header is OK
@@ -149,12 +147,8 @@ func importFromReader(s *store.Store, reader io.Reader, metadataOnly bool) error
 	}
 
 	// Check if it's valid JSON
-	var input store.ExportFormat
-
-	jsonDecoder := json.NewDecoder(bufferedReader)
-	err = jsonDecoder.Decode(&input)
-	if err == nil {
-		importUrls(s, input.Images, metadataOnly)
+	if images, err := store.ParseMetadata(bufferedReader); err == nil {
+		importUrls(s, images)
 		return nil
 	}
 
@@ -188,15 +182,14 @@ func importBundle(s *store.Store, reader *gzip.Reader) error {
 
 		// Read metadata
 		if header.Name == "gif.json" {
-			var metadata store.ExportFormat
-			jsonDecoder := json.NewDecoder(tarReader)
-			if err := jsonDecoder.Decode(&metadata); err != nil {
+			images, err := store.ParseMetadata(tarReader)
+			if err != nil {
 				return err
 			}
 			metadataRead = true
 
 			// Put the images into a map for faster access
-			for _, exported := range metadata.Images {
+			for _, exported := range images {
 				imageMap[exported.Id] = exported
 			}
 
@@ -217,14 +210,10 @@ func importBundle(s *store.Store, reader *gzip.Reader) error {
 				img.Url = queuedImage.Url
 				img.Tags = queuedImage.Tags
 
-				var addedAt time.Time
 				if queuedImage.AddedAt != "" {
-					addedAt, err = time.Parse(time.RFC3339, queuedImage.AddedAt)
-					if err != nil {
-						fmt.Fprintf(writer, "[error]\t%s\t%s\f", queuedImageId[:8], err.Error())
-						continue
+					if err = img.SetAddedAtFromString(queuedImage.AddedAt); err != nil {
+						fmt.Fprintf(writer, "[warn]\t%s\tCould not set addition date: %s\f", queuedImage.Id[:8], queuedImage.AddedAt)
 					}
-					img.AddedAt = &addedAt
 				}
 
 				AddInterface(s, writer, img, false)
@@ -262,6 +251,11 @@ func importBundle(s *store.Store, reader *gzip.Reader) error {
 			img.Url = exported.Url
 			img.Tags = exported.Tags
 
+			if exported.AddedAt != "" {
+				_ = img.SetAddedAtFromString(exported.AddedAt)
+
+			}
+
 			AddInterface(s, writer, img, false)
 		} else {
 			// Put the file into temporary storage which will be merged into the store later
@@ -290,54 +284,29 @@ func importBundle(s *store.Store, reader *gzip.Reader) error {
 	return nil
 }
 
-func importUrls(s *store.Store, images []store.ExportedImage, metadataOnly bool) {
+func importUrls(s *store.Store, images []store.ExportedImage) {
 	writer := image.DefaultWriter()
 	defer writer.Flush()
 
 	for _, exported := range images {
-		var img *image.Image
-		if metadataOnly {
-			img = &image.Image{
-				Id:  exported.Id,
-				Url: exported.Url,
-			}
-		} else {
-			var err error
-			img, err = image.FromUrl(exported.Url)
-			if err != nil {
-				fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
-				continue
-			}
+		img, err := image.FromUrl(exported.Url)
+		if err != nil {
+			fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
+			continue
+		}
 
-			if exported.Id != img.Id {
-				fmt.Fprintf(writer, "[warn]\t%s\tID mismatch, new ID: %s\f", exported.Id[:8], img.Id)
-			}
+		if exported.Id != img.Id {
+			fmt.Fprintf(writer, "[warn]\t%s\tID mismatch, new ID: %s\f", exported.Id[:8], img.Id)
 		}
 
 		img.Tags = exported.Tags
 
 		if exported.AddedAt != "" {
-			addedAt, err := time.Parse(time.RFC3339, exported.AddedAt)
-			if err != nil {
-				fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
-				continue
+			if err = img.SetAddedAtFromString(exported.AddedAt); err != nil {
+				fmt.Fprintf(writer, "[warn]\t%s\tCould not set addition date: %s\f", exported.Id[:8], exported.AddedAt)
 			}
-
-			img.AddedAt = &addedAt
 		}
 
-		if metadataOnly {
-			if err := s.Add(img); err != nil {
-				fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
-				continue
-			}
-
-			if err := s.UpdateTags(img, exported.Tags); err != nil {
-				fmt.Fprintf(writer, "[error]\t%s\t%s\f", exported.Id[:8], err.Error())
-				continue
-			}
-		} else {
-			AddInterface(s, writer, img, false)
-		}
+		AddInterface(s, writer, img, false)
 	}
 }

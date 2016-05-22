@@ -11,19 +11,16 @@ import (
 	"path"
 )
 
-func New(driver, dataSource string) (db *sql.DB, needsInit bool, err error) {
+func New(driver, dataSource string) (db *sql.DB, err error) {
 	if driver == "sqlite3" {
 		os.MkdirAll(path.Dir(dataSource), 0755)
-
-		_, err = os.Stat(dataSource)
-		needsInit = err != nil && os.IsNotExist(err)
 	}
 
 	db, err = sql.Open(driver, dataSource)
 	return
 }
 
-func Default() (*sql.DB, bool, error) {
+func Default() (*sql.DB, error) {
 	driver := config.Global.Db.Driver
 	dataSource := config.Global.Db.DataSource
 

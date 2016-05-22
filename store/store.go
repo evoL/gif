@@ -39,7 +39,7 @@ func Default() (*Store, error) {
 }
 
 func New(path string) (*Store, error) {
-	defaultDb, needsInit, err := db.Default()
+	defaultDb, err := db.Default()
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +49,12 @@ func New(path string) (*Store, error) {
 		db:   defaultDb,
 	}
 
-	if needsInit {
-		if err = store.Migrate(DefaultMigrationSource()); err != nil {
-			return nil, err
-		}
+	migrations := DefaultMigrationSource()
+	if err = store.Prepare(migrations); err != nil {
+		return nil, err
 	}
 
-	if err := os.MkdirAll(path, 0755); err != nil {
+	if err = os.MkdirAll(path, 0755); err != nil {
 		return nil, err
 	}
 	return store, nil
