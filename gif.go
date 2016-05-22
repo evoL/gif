@@ -291,16 +291,3 @@ func parseLocation(location string) (locationType, error) {
 
 	return invalidLocation, errors.New("Invalid location")
 }
-
-func tempCommand(c *cli.Context) {
-	s := getStore()
-	defer s.Close()
-
-	version, err := s.Version()
-	if err != nil {
-		fmt.Println("Error while fetching store version: " + err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Println("Version", version)
-}

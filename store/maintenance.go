@@ -15,8 +15,27 @@ func DefaultMigrationSource() migrate.MigrationSource {
 	}
 }
 
-func (s *Store) Migrate(migrations migrate.MigrationSource) (err error) {
-	_, err = migrate.Exec(s.db, config.Global.Db.Driver, migrations, migrate.Up)
+func (s *Store) Migrate(migrationSource migrate.MigrationSource) (err error) {
+	planned, err := s.plannedMigrations(migrationSource)
+	if err != nil {
+		return
+	}
+
+	// Perform DB migrations
+	_, err = migrate.Exec(s.db, config.Global.Db.Driver, migrationSource, migrate.Up)
+	if err != nil {
+		return
+	}
+
+	// Perform data migrations
+	for _, migration := range planned {
+		if dataMigration, ok := migrations.DataMigrations[migration.VersionInt()]; ok {
+			if err = dataMigration(); err != nil {
+				return
+			}
+		}
+	}
+
 	return
 }
 
