@@ -24,7 +24,7 @@ func (i *Image) IsHydrated() bool {
 
 func (i *Image) SetAddedAtFromString(addedAt string) (err error) {
 	value, err := time.Parse(time.RFC3339, addedAt)
-	if err != nil {
+	if err == nil {
 		i.AddedAt = &value
 	}
 	return
