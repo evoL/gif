@@ -2,12 +2,17 @@ package store
 
 import (
 	"github.com/evoL/gif/config"
+	"github.com/evoL/gif/store/migrations"
 	"github.com/rubenv/sql-migrate"
 )
 
 func DefaultMigrationSource() migrate.MigrationSource {
 	migrate.SetTable("gif_migrations")
-	return &migrate.FileMigrationSource{Dir: "store/migrations"}
+	return &migrate.AssetMigrationSource{
+		Asset:    migrations.Asset,
+		AssetDir: migrations.AssetDir,
+		Dir:      "db_migrations",
+	}
 }
 
 func (s *Store) Migrate(migrations migrate.MigrationSource) (err error) {
